@@ -1,0 +1,28 @@
+{
+  "funnel": "bring",
+  "shopName": "Acme Precision",
+  "slug": "acme-precision",
+  "domain": "acme-precision.getsolari.app",
+  "shopUrl": "https://acme-precision.getsolari.app",
+  "firstRfqHash": "d0c02d78",
+  "partCardHash": "c3259a261f868443",
+  "partCardLink": "./shop.html#part-card",
+  "sessionId": "ip-10-0-10-40:a9ef736a-5325-4788-81a8-1c6058a7274e:cmtjhjru801muo6018ox0jijz:1788417985941.sVLFC-fkaeJ_Jpzoc2Prow",
+  "replayUrl": null,
+  "friction": "Quote inbox scroll hint clipped at 1280px (trimmed log)",
+  "isMock": false,
+  "timeToFirstRfq": "~4 min",
+  "breakEven": {
+    "monthlyRevenue": 848.68,
+    "netMonthly": -351.32000000000005,
+    "months": null,
+    "label": "not break-even at this volume"
+  },
+  "slo": {
+    "stealth": false,
+    "recording": false
+  },
+  "previewUrl": "https://6ca24412cb7ff7c09012-3000.preview.getsolari.com?pt_token=...",
+  "previewVerified": true,
+  "previewNote": "Live — https://6ca24412cb7ff7c09012-3000.preview.getsolari.com?pt_token=..."
+}

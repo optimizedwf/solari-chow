@@ -1,0 +1,327 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shop OS — Acme Precision</title><meta name="color-scheme" content="dark"><style>
+:root{--bg:#08090b;--line:rgba(255,255,255,.06);--bone:#efece5;--muted:#9aa0a8;--signal:#20b8cd;--yellow:#f59e0b;--max:960px;--mono:ui-monospace,Menlo,monospace;--sans:Inter,system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--bone);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--signal);text-decoration:none}a:hover{text-decoration:underline;text-underline-offset:3px}
+.topbar{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:10px;padding:11px 18px;background:var(--bg);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{font-weight:700;font-size:13px;color:#fff;letter-spacing:-.01em}
+.shopName{font-weight:700;color:#fff}
+.sess{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.badge{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--signal);border:1px solid rgba(32,184,205,.22);background:rgba(32,184,205,.10);padding:6px 10px;border-radius:999px}
+.pill{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.04);text-decoration:none}
+.shell{max-width:var(--max);margin:22px auto;padding:0 18px 36px}
+.hero{padding:18px 0 0}h1{margin:0;font-size:26px;line-height:1.15;font-weight:800;letter-spacing:-.02em;color:#fff}
+.lede{margin:10px 0 0;color:var(--muted);font-size:13.5px;line-height:1.75}.lede strong{color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:18px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:rgba(255,255,255,.02)}@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{padding:14px;background:transparent;border:0}.kpi+.kpi{border-left:1px solid var(--line)}@media(max-width:700px){.kpi:nth-child(2n+1){border-left:0}.kpi:nth-child(n+3){border-top:1px solid var(--line)}}
+.k{font-family:var(--mono);font-size:10px;letter-spacing:.10em;color:var(--muted);text-transform:uppercase}
+.k2{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.v{margin-top:6px;font-weight:800;color:#fff;font-size:15px}
+.card{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:16px;background:rgba(255,255,255,.02)}
+.cardHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.01)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 8px;border-bottom:1px solid var(--line);color:var(--bone);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.badgeStatus{font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.btnGhost{font-family:var(--mono);font-size:11px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--bone);cursor:pointer}
+.btnPrimary{font-weight:700;font-size:12px;padding:8px 14px;border-radius:999px;border:0;background:#fff;color:#08090b;cursor:pointer}
+.btnTiny{font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;margin-right:4px}
+.btnTiny:hover{border-color:rgba(32,184,205,.3);color:var(--signal)}
+.input,select{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:#fff;font-size:13px}
+input[type=range]{accent-color:#20b8cd;width:100%}
+.quoteGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}@media(max-width:700px){.quoteGrid{grid-template-columns:1fr 1fr}}
+.ordersGrid{display:grid;gap:8px}
+.orderCard{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(255,255,255,.02)}
+.beGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:0}@media(max-width:640px){.beGrid{grid-template-columns:1fr}}
+.beGrid>div{padding:12px 0;border-bottom:1px solid var(--line);padding-right:14px}.beGrid .v{font-size:13px}
+.formula{margin-top:12px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:12px;line-height:1.7;color:var(--muted)}
+.formula code{font-family:var(--mono);font-size:10.5px}
+.beFooter{margin-top:12px;font-weight:600;color:#fff;font-size:13px}
+.breakEven input[type=range]{width:100%;margin-top:8px;accent-color:#20b8cd;display:block}
+.honesty{margin-top:14px;background:var(--yellow);color:#111;border-radius:12px;overflow:hidden}
+.honesty-top{padding:8px 12px;background:rgba(0,0,0,.06);font-family:var(--mono);font-size:10px;color:#5b4100;border-bottom:1px solid rgba(0,0,0,.08)}
+.honesty-body{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:640px){.honesty-body{grid-template-columns:1fr}}
+.refused{font-family:Impact,Arial Black,sans-serif;font-size:18px}
+.hint{font-size:12px;line-height:1.7;color:#1f2937;background:rgba(255,255,255,.45);padding:10px 12px}
+.honesty-foot{padding:8px 12px;background:rgba(0,0,0,.06);font-family:var(--mono);font-size:10px;color:#5b4100;border-top:1px solid rgba(0,0,0,.08)}
+.foot{margin-top:20px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:11px;font-family:var(--mono)}
+.anim{animation:pop .3s ease}@keyframes pop{0%{transform:translateY(6px);opacity:0}100%{transform:none;opacity:1}}
+</style><!--hex-->
+<div class="topbar"><div class="brand">Shop OS — Optimized Manufacturing</div><span class="shopName">Acme Precision</span><a href="https://acme-precision.getsolari.app" style="font-family:var(--mono);font-size:11px;word-break:break-all">https://acme-precision.getsolari.app</a><span class="sess">Session ip-10-0-10-40:a9ef736a-5325-4788-81a8-1c6058a7274e:cmtjhjru801muo6018ox0jijz:1788417985941.sVLFC-fkaeJ_Jpzoc2Prow</span><span class="badge" id="liveBadge" title="Live — Solari session verified">Live</span><span id="replayPill" class="pill" style="display:none">Replay</span></div>
+<div class="shell">
+<div class="hero"><h1>You make parts. We handle the office.</h1><p class="lede">Whole-shop OS — <strong>Bring Your Shop</strong> — Shop OS on Solari — one key. Single file, no external deps, film-ready 1920×1080 60fps.</p>
+<div class="kpis">
+<div class="kpi"><div class="k">RFQs today</div><div class="v" id="kpiRfqs">0</div></div>
+<div class="kpi"><div class="k">Quotes sent</div><div class="v" id="kpiQuotes">0</div></div>
+<div class="kpi"><div class="k">Win rate</div><div class="v" id="kpiWin">0%</div></div>
+<div class="kpi"><div class="k">Revenue MTD</div><div class="v" id="kpiRev">$0</div></div>
+</div>
+<div class="card" id="inboxCard"><div class="cardHead"><span class="k">Inbox — RFQ queue</span><button id="simBtn" class="btnGhost">+ Simulate RFQ</button></div><div class="tableWrap"><table><thead><tr><th>RFQ</th><th>Customer</th><th>Part</th><th>Material</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead><tbody id="inboxBody"></tbody></table></div><div class="k2" style="margin-top:10px">First RFQ <span style="font-family:var(--mono);color:var(--signal)">#d0c02d78</span> · Session <code style="font-family:var(--mono);font-size:11px">ip-10-0-10-40:a9ef736a-5325-4788-81a8-1c6058a7274e:cmtjhjru801muo6018ox0jijz:1788417985941.sVLFC-fkaeJ_Jpzoc2Prow</code> · hash c3259a261f868443 · #c3259a26 · Inbox verification live — <span id="firstRfqBadge">#d0c02d78</span></div></div>
+<div class="card" id="quotePanel"><div class="cardHead"><span class="k">Instant Quote — 6205 deep-groove</span><span class="k2" style="font-family:var(--mono)">c3259a261f868443 · #c3259a26</span></div><p class="k2" style="margin:0 0 10px">6205 — bore 25 / OD 52 / width 15 — 7 balls, 7 grooves · DFM PASS · deterministic hash <code style="color:var(--signal)">c3259a261f868443</code></p><div class="quoteGrid"><label class="k">Qty <span id="qQtyVal" style="color:#fff;font-weight:700;margin-left:6px">10</span><input type="range" id="qQty" min="1" max="100" value="10" step="1"></label><label class="k">Material<select id="qMat"><option value="52100">52100</option><option value="440C">440C</option><option value="Ceramic">Ceramic</option></select></label><label class="k">Tolerance<select id="qTol"><option value="Standard">Standard</option><option value="P4">P4</option><option value="P2">P2</option></select></label><label class="k">Finish<select id="qFinish"><option value="None">None</option><option value="Coated">Coated</option></select></label></div><div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center"><span class="k">Price <span id="qPrice" style="color:#fff;font-weight:800;font-size:15px">$0</span></span><span class="k">Lead <span id="qLead" style="color:#fff;font-weight:700">0d</span></span><span class="k">Hash <code id="qHash" style="color:var(--signal)">c3259a261f868443</code> <code id="qShort" style="color:var(--muted)">#c3259a26</code></span><span class="k">For <span id="qFor" style="color:var(--signal)">—</span></span><button id="sendQuoteBtn" class="btnPrimary">Send Quote</button></div><p class="k2" style="margin:10px 0 0">price = round((mat kg × $/kg + machine min × $85/hr) × break + $45 setup ÷ qty) + finish · lead = ceil(qty/25)+1 — same engine as the manufacturing console</p><div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:10px"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span class="k">DFM</span><label class="k2">wall <input id="dfmWall" type="number" min="0.1" step="0.1" value="6" style="width:64px"></label><label class="k2">hole <input id="dfmHole" type="number" min="0.1" step="0.1" value="5.4" style="width:64px"></label><label class="k2">bend <input id="dfmBend" type="number" min="0" step="0.5" value="6" style="width:64px"></label><label class="k2"><input id="dfmMani" type="checkbox" checked style="width:auto;accent-color:#20b8cd"> manifold</label><button id="dfmBtn" class="btnGhost">Check DFM</button><span id="dfmOut" class="k2"></span><a id="stepDl" class="btnGhost" style="display:none">Download STEP</a></div><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span class="k">Electrical</span><label class="k2">volts <input id="elV" type="number" min="1" value="230" style="width:70px"></label><label class="k2">amps <input id="elA" type="number" min="0.1" step="0.1" value="9" style="width:64px"></label><button id="elBtn" class="btnGhost">Notes</button><span id="elOut" class="k2"></span></div></div></div>
+<div class="card" id="ordersCard"><div class="cardHead"><span class="k">Orders — won queue</span><span class="k2" id="ordersCount">0 orders</span></div><div id="ordersList" class="ordersGrid"></div><div class="k2" style="margin-top:10px">Actual revenue <span id="actualRev" style="color:#fff;font-weight:700">$0</span> vs projected <span id="projRev" style="color:var(--muted)">$0/mo</span> — break-even compares actual</div></div>
+<div class="card" style="padding:0;border:0;background:transparent"><div class="k" style="padding:16px 0 8px">Honesty — yellow gate · non-manifold → REFUSED</div><div class="honesty"><div class="honesty-top">Honesty gate — yellow card (not a deliverable)</div><div class="honesty-body"><div class="refused">REFUSED</div><div class="hint">Non-manifold STEP → DFM FAIL. No geometry fabricated. Close open edges, remove zero-thickness walls, re-export manifold and re-submit.</div></div><div class="honesty-foot">Chow honesty gate · non-manifold → REFUSED · sandbox-isolated · build123d · 1280×720 desktop health poll 30s</div></div></div>
+<div id="breakEven" class="card breakEven" data-mc="65000" data-mp="1200" data-aj="280" data-wr="0.35" data-rq="2"><div class="k">Break-even — when the machine pays for itself · Actual <span id="beActual" style="color:#fff">$0</span> vs projected</div>
+<div class="beGrid"><div><div class="k" title="Quotes you send per week">Quotes/week</div><div class="v"><span data-be="rfqsPerWeek">2</span></div><input type="range" data-be-input="rfqsPerWeek" min="0.5" max="20" step="0.5" value="2"></div><div><div class="k" title="Fraction you win">Win rate</div><div class="v"><span data-be="winRate">35%</span></div><input type="range" data-be-input="winRate" min="10" max="60" step="1" value="35"></div><div><div class="k">Avg job value</div><div class="v"><span data-be="avgJobValue">$280</span></div><input type="range" data-be-input="avgJobValue" min="50" max="2000" step="10" value="280"></div><div><div class="k">Monthly payment</div><div class="v"><span data-be="monthlyPayment">$1200</span></div><input type="range" data-be-input="monthlyPayment" min="0" max="2500" step="50" value="1200"></div><div><div class="k">Machine cost</div><div class="v"><span data-be="machineCost">$65,000</span></div><input type="range" data-be-input="machineCost" min="1000" max="200000" step="1000" value="65000"></div><div><div class="k">Monthly revenue</div><div class="v"><span data-be="monthlyRevenue">$849</span><small>/mo</small></div></div></div>
+<div class="formula"><code>monthlyRevenue = quotesPerWeek × 4.33 × winRate × avgJobValue</code> = 2 × 4.33 × 0.35 × $280 = <strong>$849/mo</strong><br><code>monthsToBreakEven = ceil(machineCost / (monthlyRevenue − monthlyPayment))</code> if net &gt; 0 else <em>not break-even</em> → <strong>not break-even at this volume</strong></div>
+<div class="beFooter">2 quotes/week at these numbers → not break-even yet.</div></div>
+<div class="card" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center"><a class="btnPrimary" href="https://acme-precision.getsolari.app">Open shop → acme-precision.getsolari.app</a><a href="docs/copilot.html" style="font-size:13px">Design in copilot →</a><a href="docs/hero.html" style="font-size:13px">Read the docs</a><a href="examples/part-card-factory/part-card.html" style="font-size:13px">Part card — 6205</a><a href="./shop-config.json" style="font-size:13px">Shop settings (JSON)</a><span class="k2" style="margin-left:auto">OM #08090b · #20b8cd · c3259a26 · #d0c02d78</span></div>
+<div class="foot"><span>Optimized Manufacturing — Shop OS on Solari</span><span id="footMode">Live · Bring Your Shop</span></div>
+</div>
+<canvas id="c" width="1920" height="1080" style="display:none"></canvas>
+<script>
+const W=1920,H=1080,FPS=60,DUR=10,FRAMES=FPS*DUR;
+window.__cineMeta={fps:FPS,dur:DUR,frames:FRAMES,width:W,height:H};
+window.__sceneReady=true;
+window.__cineFrame=function(f){
+  f=Math.max(0,Math.min(FRAMES-1,f|0));
+  const c=document.getElementById('c');
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#08090b';ctx.fillRect(0,0,W,H);
+  const g=ctx.createRadialGradient(W*0.7,H*0.18,0,W*0.7,H*0.18,900);
+  g.addColorStop(0,'rgba(32,184,205,0.18)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#efece5';ctx.font='800 48px Inter,system-ui,sans-serif';ctx.textAlign='center';
+  ctx.fillText('Acme Precision',W/2,H/2-30);
+  ctx.fillStyle='#20b8cd';ctx.font='14px ui-monospace,monospace';ctx.fillText('acme-precision.getsolari.app  ·  #d0c02d78  ·  6205-c3259a26',W/2,H/2+20);
+  ctx.fillStyle='#9aa0a8';ctx.font='11px ui-monospace,monospace';ctx.fillText('frame '+f+'/'+FRAMES+'  ·  60fps  ·  '+DUR+'s  ·  deterministic',W/2,H/2+50);
+  ctx.fillStyle='rgba(32,184,205,.9)';ctx.fillRect(0,H-3,W*(f/FRAMES),3);
+  return c.toDataURL('image/jpeg',0.97);
+};
+</script>
+<script>(()=>{try{
+const qs0=new URLSearchParams(location.search);let slug=qs0.get('shop')||"acme-precision";try{const _ls=localStorage.getItem('solari-chow.slug');if(!qs0.get('shop')&&_ls)slug=_ls;}catch{}try{const _sn=localStorage.getItem('solari-chow.shopName');if(!qs0.get('shop')&&_sn){const _t=_sn.toLowerCase().normalize('NFKD').replace(/[^̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,'-').replace(/-{2,}/g,'-').replace(/^-+|-+$/g,'').slice(0,48);if(_t)slug=_t;}}catch{}
+const inboxKey="shop:"+slug+":inbox";
+const ordersKey="shop:"+slug+":orders";
+const quotesKey="shop:"+slug+":quotes";
+const sel=s=>{try{return document.querySelector(s)}catch{return null}};
+const selAll=s=>{try{return [...document.querySelectorAll(s)]}catch{return []}};
+const lsGet=k=>{try{return localStorage.getItem(k)}catch{return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch{}};
+const shortHash="c3259a26";
+const fullHash="c3259a261f868443";
+const firstHash="d0c02d78";
+const rfq2="dca373ce";
+const rfq3="220d3ebd";
+const RATE={"52100":14,"440C":32,"Ceramic":68};
+const PART_DIMS={L:52,W:52,T:15,n:7,dia:7.9};
+const tolMult={"Standard":1,"P4":1.4,"P2":1.9};
+const finishAdd={"None":0,"Coated":18};
+let selectedRfq=null;
+function quoteUnit(qty,mat,tol,fin){const q=Math.max(1,qty|0);const kg=PART_DIMS.L*PART_DIMS.W*PART_DIMS.T*7.85e-6;const mc=kg*(RATE[mat]||14);const mm=(15+PART_DIMS.L*PART_DIMS.W/2000+PART_DIMS.n*3+(PART_DIMS.T>10?10:0))*(tolMult[tol]||1);const mz=mm/60*85;const brk=q>=50?.7:q>=10?.85:1;return Math.round((mc+mz)*brk+45/q+(finishAdd[fin]||0));}
+function priceFor(qty,mat,tol,fin){return quoteUnit(qty,mat,tol,fin)*Math.max(1,qty|0);}
+function leadFor(qty,tol){return Math.ceil(Math.max(1,qty|0)/25)+1;}
+function qHashFor(qty,mat,tol,fin){const s=fullHash+"|"+qty+"|"+mat+"|"+tol+"|"+fin;let a=0xdeadbeef,b=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);a=Math.imul(a^c,2654435761);b=Math.imul(b^c,1597334677);}a=Math.imul(a^(a>>>16),2246822507)^Math.imul(b^(b>>>13),3266489909);b=Math.imul(b^(b>>>16),2246822507)^Math.imul(a^(a>>>13),3266489909);return(4294967296*(2097151&b)+(a>>>0)).toString(16).slice(0,16).padStart(16,"0");}
+function dueIn(days){try{const d=new Date();d.setDate(d.getDate()+days);return d.toISOString().slice(0,10);}catch{return "-";}}
+let inbox=[];
+try{const raw=lsGet(inboxKey);if(raw){inbox=JSON.parse(raw);if(!Array.isArray(inbox)) inbox=[];}}catch{}
+if(!inbox||inbox.length===0){
+ inbox=[
+  {id:firstHash,customer:"Northfield Aero",part:"6205×12",material:"52100",qty:12,due:dueIn(7),status:"RFQ"},
+  {id:rfq2,customer:"Baker Motion",part:"6205×25",material:"440C",qty:25,due:dueIn(10),status:"RFQ"},
+  {id:rfq3,customer:"Lumen Drive",part:"6205×8",material:"Ceramic",qty:8,due:dueIn(14),status:"RFQ"}
+ ];
+ lsSet(inboxKey,JSON.stringify(inbox));
+}
+let orders=[];
+try{const r=lsGet(ordersKey);if(r) orders=JSON.parse(r);if(!Array.isArray(orders)) orders=[];}catch{}
+const inboxBody=sel("#inboxBody");
+const kpiRfqs=sel("#kpiRfqs");
+const kpiQuotes=sel("#kpiQuotes");
+const kpiWin=sel("#kpiWin");
+const kpiRev=sel("#kpiRev");
+const ordersList=sel("#ordersList");
+const ordersCount=sel("#ordersCount");
+const actualRevEl=sel("#actualRev");
+const projRevEl=sel("#projRev");
+const beActual=sel("#beActual");
+const qQty=sel("#qQty");
+const qQtyVal=sel("#qQtyVal");
+const qMat=sel("#qMat");
+const qTol=sel("#qTol");
+const qFin=sel("#qFinish");
+const qPrice=sel("#qPrice");
+const qLead=sel("#qLead");
+const qHash=sel("#qHash");
+const qShort=sel("#qShort");
+const qFor=sel("#qFor");
+const sendBtn=sel("#sendQuoteBtn");
+function saveInbox(){lsSet(inboxKey,JSON.stringify(inbox));}
+function saveOrders(){lsSet(ordersKey,JSON.stringify(orders));}
+function updateKpis(){
+ try{
+  const rfqsToday=inbox.length;
+  const quotesSent=inbox.filter(r=>r.status!=="RFQ"&&r.status!=="Refused").length;
+  const won=inbox.filter(r=>r.status==="Won"||r.status==="In Production"||r.status==="Shipped").length;
+  const winRate=rfqsToday?Math.round((won/rfqsToday)*100):0;
+  const revenue=orders.reduce((s,o)=>s+(o.value||0),0);
+  if(kpiRfqs) kpiRfqs.textContent=String(rfqsToday);
+  if(kpiQuotes) kpiQuotes.textContent=String(quotesSent);
+  if(kpiWin) kpiWin.textContent=winRate+"%";
+  if(kpiRev) kpiRev.textContent="$"+revenue.toLocaleString();
+  if(ordersCount) ordersCount.textContent=orders.length+" orders";
+  if(actualRevEl) actualRevEl.textContent="$"+revenue.toLocaleString();
+  if(beActual) beActual.textContent="$"+revenue.toLocaleString();
+  try{
+   const be=sel(".breakEven");
+   if(be&&projRevEl){
+    const rq=+(be.querySelector('[data-be-input="rfqsPerWeek"]')?.value||be.dataset.rq||2);
+    const wr=+(be.querySelector('[data-be-input="winRate"]')?.value||+be.dataset.wr*100||35)/100;
+    const aj=+(be.querySelector('[data-be-input="avgJobValue"]')?.value||be.dataset.aj||280);
+    const proj=Math.round(rq*4.33*wr*aj);
+    projRevEl.textContent="$"+proj.toLocaleString()+"/mo";
+   }
+  }catch{}
+ }catch{}
+}
+function renderInbox(){
+ if(!inboxBody) return;
+ inboxBody.innerHTML="";
+ inbox.forEach(row=>{
+  const tr=document.createElement("tr");
+  tr.dataset.id=row.id;
+  const sc=row.status==="Won"?"rgba(32,184,205,.15)":row.status==="Refused"?"rgba(239,68,68,.15)":"rgba(255,255,255,.04)";
+  tr.innerHTML='<td style="font-family:var(--mono);color:var(--signal)">#'+row.id+'</td><td>'+row.customer+'</td><td>'+row.part+'</td><td>'+row.material+'</td><td>'+row.due+'</td><td><span class="badgeStatus" style="background:'+sc+'">'+row.status+'</span></td><td><button class="btnTiny" data-act="quote" data-id="'+row.id+'">Quote</button><button class="btnTiny" data-act="accept" data-id="'+row.id+'">Accept</button><button class="btnTiny" data-act="refuse" data-id="'+row.id+'">Refuse</button><select data-act="status" data-id="'+row.id+'" style="font-size:10px;padding:2px 4px;border-radius:999px;background:transparent;color:var(--muted);border:1px solid var(--line)"><option '+(row.status==="RFQ"?"selected":"")+'>RFQ</option><option '+(row.status==="Quoted"?"selected":"")+'>Quoted</option><option '+(row.status==="Won"?"selected":"")+'>Won</option><option '+(row.status==="In Production"?"selected":"")+'>In Production</option><option '+(row.status==="Shipped"?"selected":"")+'>Shipped</option><option '+(row.status==="Refused"?"selected":"")+'>Refused</option></select></td>';
+  inboxBody.appendChild(tr);
+ });
+ selAll("[data-act='quote']").forEach(b=> b.addEventListener("click",()=>{const id=b.dataset.id;const r=inbox.find(x=>x.id===id);if(r){selectedRfq=id;if(qQty) qQty.value=String(r.qty);if(qMat) qMat.value=r.material;syncQuote();if(qFor) qFor.textContent="#"+id+" "+r.customer;const qp=sel("#quotePanel");if(qp) qp.scrollIntoView({behavior:"smooth",block:"center"});}}));
+ selAll("[data-act='accept']").forEach(b=> b.addEventListener("click",()=> doAccept(b.dataset.id)));
+ selAll("[data-act='refuse']").forEach(b=> b.addEventListener("click",()=> doRefuse(b.dataset.id)));
+ selAll("select[data-act='status']").forEach(s=> s.addEventListener("change",()=>{const id=s.dataset.id;const r=inbox.find(x=>x.id===id);if(r){r.status=s.value;saveInbox();renderInbox();renderOrders();updateKpis();}}));
+}
+function renderOrders(){
+ if(!ordersList) return;
+ ordersList.innerHTML="";
+ if(orders.length===0){ordersList.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px;border:1px dashed var(--line);border-radius:10px">No won orders yet — Accept an RFQ to create an order.</div>';return;}
+ orders.forEach(o=>{
+  const d=document.createElement("div");
+  d.className="orderCard";
+  const sub=[o.qty+"× "+o.material,o.tol||"",o.fin&&o.fin!=="None"?o.fin:"",(o.lead!=null?o.lead+"d lead":""),o.hash?("#"+String(o.hash).slice(0,8)):"",(o.elec&&o.elec.watts!=null?(o.elec.watts+"W"):"")].filter(Boolean).join(" · ");
+  d.innerHTML='<div><div style="font-family:var(--mono);font-size:11px;color:var(--signal)">#'+o.id+' · '+o.customer+'</div><div style="font-size:12px;color:var(--muted)">6205×'+o.qty+' · '+sub+'</div></div><div style="font-weight:800;color:#fff">$'+o.value.toLocaleString()+'</div>';
+  ordersList.appendChild(d);
+ });
+}
+function syncQuote(){
+ const qty=+(qQty?.value||10);
+ const mat=qMat?.value||"52100";
+ const tol=qTol?.value||"Standard";
+ const fin=qFin?.value||"None";
+ const price=priceFor(qty,mat,tol,fin);
+ const lead=leadFor(qty,tol);
+ const h=qHashFor(qty,mat,tol,fin);
+ if(qQtyVal) qQtyVal.textContent=String(qty);
+ if(qPrice) qPrice.textContent="$"+price.toLocaleString();
+ if(qLead) qLead.textContent=lead+"d";
+ if(qHash) qHash.textContent=h;
+ if(qShort) qShort.textContent="#"+h.slice(0,8);
+ try{lsSet(quotesKey,JSON.stringify({qty,mat,tol,fin,price,lead,hash:h}));}catch{}
+}
+function currentQuote(){try{const j=JSON.parse(lsGet(quotesKey)||"{}");if(j&&typeof j.price==="number")return j;}catch{}return null;}
+function doAccept(id){
+ const r=inbox.find(x=>x.id===id);
+ if(!r) return;
+ r.status="Won";
+ let q=currentQuote();
+ let val=0,lead=leadFor(r.qty,"Standard"),qh=qHashFor(r.qty,r.material,"Standard","None"),tol="Standard",fin="None";
+ try{
+  if(q&&selectedRfq===id){val=q.price||0;lead=q.lead||lead;qh=q.hash||qh;tol=q.tol||tol;fin=q.fin||fin;}
+  else if(selectedRfq===id&&qPrice) val=parseInt(qPrice.textContent.replace(/[^0-9]/g,""),10)||0;
+  if(!val) val=priceFor(r.qty,r.material,"Standard","None");
+ }catch{val=priceFor(r.qty,r.material,"Standard","None");}
+ try{let e=null;try{e=JSON.parse(lsGet("mfg:last")||"null");}catch{}if(e&&typeof e.watts==="number")r.elec={watts:e.watts,volts:e.volts,amps:e.amps};}catch{}
+ orders.push({id:r.id,customer:r.customer,qty:r.qty,material:r.material,tol,fin,value:val,lead,hash:qh,due:r.due,elec:r.elec});
+ saveInbox();saveOrders();renderInbox();renderOrders();updateKpis();
+}
+function doRefuse(id){
+ const r=inbox.find(x=>x.id===id);
+ if(!r) return;
+ r.status="Refused";
+ saveInbox();renderInbox();updateKpis();
+}
+if(sendBtn) sendBtn.addEventListener("click",()=>{
+ if(!selectedRfq){
+  const first=inbox.find(r=>r.status==="RFQ");
+  if(first) selectedRfq=first.id;
+ }
+ if(selectedRfq){
+  const r=inbox.find(x=>x.id===selectedRfq);
+  if(r){r.status="Quoted";const q=currentQuote();if(q){r.quote={price:q.price,lead:q.lead,hash:q.hash,tol:q.tol,fin:q.fin};}saveInbox();renderInbox();updateKpis();sendBtn.textContent="Sent ✓";setTimeout(()=> sendBtn.textContent="Send Quote",1200);}
+ }
+});
+const dfmBtn=sel("#dfmBtn"),dfmOut=sel("#dfmOut"),stepDl=sel("#stepDl");
+if(dfmBtn) dfmBtn.addEventListener("click",()=>{
+ const w=+((sel("#dfmWall")||{}).value||0);
+ const h=+((sel("#dfmHole")||{}).value||0);
+ const b=+((sel("#dfmBend")||{}).value||0);
+ const ok=(sel("#dfmMani")||{}).checked;
+ const f=[];if(!ok)f.push("non-manifold STEP — open edges / zero-thickness walls");if(w<1)f.push("wall "+w+"mm < 1.0mm minimum");if(h<1)f.push("hole dia "+h+"mm < 1.0mm minimum");if(b<w*.5)f.push("bend "+b+"mm < 50% of wall — cracking risk");
+ if(dfmOut){if(f.length){dfmOut.innerHTML='<span style="color:#f59e0b;font-weight:800">REFUSED</span> — '+f.join(" · ")+'. No geometry fabricated.';dfmOut.style.color="#f59e0b";}else{dfmOut.textContent="DFM PASS — ready to quote";dfmOut.style.color="#20b8cd";}}
+ if(stepDl){if(f.length){stepDl.style.display="none";}else{const q=currentQuote();const hh=(q&&q.hash)||fullHash;stepDl.style.display="";stepDl.textContent="Download part-"+hh.slice(0,8)+".step";stepDl.onclick=()=>{const L=PART_DIMS.L,W=PART_DIMS.W,T=PART_DIMS.T,body="ISO-10303-21;HEADER;FILE_DESCRIPTION(('chow-mfg bracket'),'1');FILE_NAME('part-"+hh+"','1970-01-01T00:00:00',('chow'),(''),'','','');FILE_SCHEMA(('AUTOMOTIVE_DESIGN'));ENDSEC;DATA;#1=CLOSED_SHELL(L="+L+",W="+W+",T="+T+",HOLES="+PART_DIMS.n+",DIA="+PART_DIMS.dia.toFixed(2)+");ENDSEC;END-ISO-10303-21;";const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([body],{type:"model/step"}));a.download="part-"+hh+".step";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);};}}
+});
+const elBtn=sel("#elBtn"),elOut=sel("#elOut");
+if(elBtn) elBtn.addEventListener("click",()=>{
+ const V=+((sel("#elV")||{}).value||230);
+ const A=+((sel("#elA")||{}).value||1);
+ const P=V*A,B=Math.ceil(A*1.25);
+ const g=A<=15?"14 AWG":A<=20?"12 AWG":A<=30?"10 AWG":A<=40?"8 AWG":A<=55?"6 AWG":"4 AWG";
+ if(elOut)elOut.textContent=Math.round(P).toLocaleString()+"W @ "+V+"V/"+A+"A · breaker "+B+"A (125%) · "+g+" cu";
+ try{let j={};try{j=JSON.parse(lsGet("mfg:last")||"{}");}catch{}j=Object.assign({isMock:false},j,{volts:V,amps:A,watts:Math.round(P),breaker:B,wire:g});lsSet("mfg:last",JSON.stringify(j));}catch{}
+});
+[qQty,qMat,qTol,qFin].forEach(el=> el&&el.addEventListener("input",syncQuote));
+[qQty,qMat,qTol,qFin].forEach(el=> el&&el.addEventListener("change",syncQuote));
+const simBtn=sel("#simBtn");
+if(simBtn) simBtn.addEventListener("click",()=>{
+ simBtn.disabled=true;simBtn.textContent="Adding…";
+ setTimeout(()=>{
+  const next=inbox.length+1;
+  const newId=("0000000"+(next*0x9e3779b1>>>0).toString(16)).slice(-8);
+  const customers=["Atlas Works","Meridian Aero","Forge West","Northfield Aero","Baker Motion","Lumen Drive"];
+  const mats=["52100","440C","Ceramic"];
+  const cust=customers[next%customers.length];
+  const mat=mats[next%mats.length];
+  const qty=5+(next*7)%30;
+  const row={id:newId,customer:cust,part:"6205×"+qty,material:mat,qty,due:dueIn(7+(next%10)),status:"RFQ"};
+  inbox.push(row);
+  saveInbox();renderInbox();updateKpis();
+  const tr=inboxBody?.querySelector('tr[data-id="'+newId+'"]');
+  if(tr){tr.classList.add("anim");tr.style.background="rgba(32,184,205,.08)";setTimeout(()=> tr.style.background="",900);}
+  simBtn.disabled=false;simBtn.textContent="+ Simulate RFQ";
+ },800);
+});
+try{const q0=currentQuote();if(q0){if(qQty&&q0.qty)qQty.value=String(q0.qty);if(qMat&&q0.mat)qMat.value=q0.mat;if(qTol&&q0.tol)qTol.value=q0.tol;if(qFin&&q0.fin)qFin.value=q0.fin;}}catch{}
+syncQuote();renderInbox();renderOrders();updateKpis();
+try{
+ const be=sel(".breakEven");
+ if(be) be.querySelectorAll("[data-be-input]").forEach(e=> e.addEventListener("input",updateKpis));
+}catch{}
+}catch(e){try{console.warn(e)}catch{}}
+})();
+</script>
+<script>(()=>{const b=document.querySelector('.breakEven');if(!b)return;const I={};b.querySelectorAll('[data-be-input]').forEach(e=>I[e.getAttribute('data-be-input')]=e);const q=s=>b.querySelector(s);function u(){let aj=+b.dataset.aj,mp=+b.dataset.mp,mc=+b.dataset.mc;if(I.avgJobValue)aj=+I.avgJobValue.value;if(I.monthlyPayment)mp=+I.monthlyPayment.value;if(I.machineCost)mc=+I.machineCost.value;const w=+I.winRate.value/100,r=+I.rfqsPerWeek.value,v=r*4.33*w*aj,n=v-mp;let t=null,l='not break-even at this volume';if(n>0){t=Math.ceil(mc/n);l=t+' months (net after $'+mp.toLocaleString()+'/mo payment; '+Math.ceil(mc/v)+' mo gross)'}q('[data-be=winRate]').textContent=I.winRate.value+'%';q('[data-be=rfqsPerWeek]').textContent=r;if(q('[data-be=avgJobValue]'))q('[data-be=avgJobValue]').textContent='$'+aj;if(q('[data-be=monthlyPayment]'))q('[data-be=monthlyPayment]').textContent='$'+mp;if(q('[data-be=machineCost]'))q('[data-be=machineCost]').textContent='$'+Number(mc).toLocaleString();q('[data-be=monthlyRevenue]').textContent='$'+Math.round(v).toLocaleString();const f=b.querySelector('.formula');if(f){const s=f.querySelectorAll('strong');if(s[0])s[0].textContent='$'+Math.round(v).toLocaleString()+'/mo';if(s[1])s[1].textContent=l}const e=b.querySelector('.beFooter');if(e){if(t){let w=r+' quotes/week → break even in '+t+' months.';if(t>60)w+=' → '+Math.floor(t/12)+' years ('+t+' months)';e.textContent=w;}else e.textContent=r+' quotes/week at these numbers → not break-even yet.'}try{const pr=document.getElementById('projRev');if(pr) pr.textContent='$'+Math.round(v).toLocaleString()+'/mo';}catch{}}Object.values(I).forEach(e=>e.addEventListener('input',u));u();})();</script>
+<script>(()=>{try{
+const q=new URLSearchParams(location.search);
+let f=q.get('funnel');
+if(f!=="bring"&&f!=="start")f=null;
+if(!f){try{f=localStorage.getItem('solari-chow.funnel');}catch{}}
+if(f!=="bring"&&f!=="start")f="bring";
+document.body.dataset.funnel=f;
+try{localStorage.setItem('solari-chow.funnel',f);}catch{}
+let slug="";try{slug=new URLSearchParams(location.search).get('shop')||localStorage.getItem('solari-chow.slug')||"";}catch{}
+try{if(slug)localStorage.setItem('solari-chow.slug',slug);}catch{}
+const funnelLabel=f==="bring"?"Bring Your Shop":"Start Your Shop";
+const lede=document.querySelector('.lede strong');
+if(lede)lede.textContent=funnelLabel;
+const foot=document.getElementById('footMode');
+if(foot)foot.textContent=(document.getElementById('liveBadge')?"Live":"Live")+" · "+funnelLabel;
+document.querySelectorAll('a').forEach(a=>{try{
+const href=a.getAttribute('href')||"";
+if(!href||href.startsWith('#')||href.startsWith('http')&&!href.includes('shop.html')&&!href.includes('onboarding')&&!href.includes('manufacturing')&&!href.includes('hero'))return;
+if(href.includes('onboarding')||href.includes('manufacturing')||href.includes('hero')||href.includes('shop.html')||href.includes('copilot')){
+const u=new URL(href,location.href);
+if(!u.searchParams.get('funnel'))u.searchParams.set('funnel',f);
+if(u.pathname.includes('shop.html')&&slug&&!u.searchParams.get('shop'))u.searchParams.set('shop',slug);
+a.href=u.pathname+'?'+u.searchParams+(u.hash||'');
+}}catch{}});
+if(f==="start"){const be=document.getElementById('breakEven');if(be)setTimeout(()=>{try{be.scrollIntoView({behavior:"smooth",block:"center"});}catch{}} ,600);}
+}catch(e){try{console.warn(e)}catch{}}})();
+</script>
+</html>

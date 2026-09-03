@@ -1,0 +1,15 @@
+{
+  "funnel": "bring",
+  "shopName": "Acme Precision",
+  "slug": "acme-precision",
+  "domain": "acme-precision.getsolari.app",
+  "shopUrl": "https://acme-precision.getsolari.app",
+  "firstRfqHash": "d0c02d7818",
+  "partCardHash": "c3259a261f868443",
+  "partCardLink": "./onboarding.html#part-card",
+  "sessionId": "ip-10-0-10-40:56bc034f-d851-4a85-b274-14326816eeb5:cmtjhjru801muo6018ox0jijz:1788405772589.OkTnVL2L0uhrhzOuyLPKlw",
+  "replayUrl": null,
+  "friction": "Quote inbox scroll hint clipped at 1280px (trimmed log)",
+  "isMock": false,
+  "timeToFirstRfq": "~4 min"
+}

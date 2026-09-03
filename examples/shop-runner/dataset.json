@@ -1,0 +1,55 @@
+{
+  "shop": {
+    "name": "Acme Precision",
+    "slug": "acme-precision",
+    "url": "https://acme-precision.getsolari.app",
+    "funnel": "bring"
+  },
+  "storefront": {
+    "sessionId": "ip-10-0-10-40:a9ef736a-5325-4788-81a8-1c6058a7274e:cmtjhjru801muo6018ox0jijz:1788417985941.sVLFC-fkaeJ_Jpzoc2Prow",
+    "replayUrl": null,
+    "friction": "Quote inbox scroll hint clipped at 1280px (trimmed log)",
+    "stealth": false,
+    "recording": false,
+    "isMock": false
+  },
+  "preview": {
+    "url": "https://6ca24412cb7ff7c09012-3000.preview.getsolari.com?pt_token=...",
+    "verified": true,
+    "port": 3000,
+    "pattern": "https://xxx-3000.preview.getsolari.com?pt_token=..."
+  },
+  "quote": {
+    "model": "6205",
+    "partCardHash": "c3259a261f868443",
+    "deterministic": "normalize 1970-01-01T00:00:00",
+    "honesty": "non-manifold → REFUSED yellow #f59e0b"
+  },
+  "inbox": {
+    "firstRfqHash": "d0c02d78",
+    "timeToFirstRfq": "~4 min",
+    "landingDelay": "instant preview / ~4 min live"
+  },
+  "breakEven": {
+    "machineCost": 65000,
+    "monthlyPayment": 1200,
+    "avgJobValue": 280,
+    "winRate": 0.35,
+    "rfqsPerWeek": 2,
+    "formula": "monthlyRevenue = rfqsPerWeek*4.33*winRate*avgJobValue; monthsToBreakEven = ceil(machineCost/(monthlyRevenue - monthlyPayment)) if net>0 else not break-even",
+    "computed": {
+      "monthlyRevenue": 848.68,
+      "netMonthly": -351.32000000000005,
+      "months": null,
+      "label": "not break-even at this volume"
+    }
+  },
+  "capture": {
+    "fps": 60,
+    "width": 1920,
+    "height": 1080,
+    "format": "JPEG 0.97 image2pipe libx264 medium crf12 yuv420p bt709 g60 moov faststart"
+  },
+  "coupon": "STARTER1MO-XXXX",
+  "apiHint": "SOLARI_API_KEY=slr_live_... (placeholder only — no real key in repo; .env gitignored)"
+}

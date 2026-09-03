@@ -1,0 +1,92 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Office in a Box — Acme Precision</title><meta name="color-scheme" content="dark"><style>
+:root{--bg:#08090b;--line:rgba(255,255,255,.06);--bone:#efece5;--muted:#9aa0a8;--signal:#20b8cd;--yellow:#f59e0b;--max:740px;--mono:ui-monospace,Menlo,monospace;--sans:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+*{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--bone);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--signal);text-decoration:none} a:hover{text-decoration:underline;text-underline-offset:3px}
+.topbar{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:14px;padding:11px 18px;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--sans);font-weight:700;font-size:13px;color:#fff;letter-spacing:-.01em;line-height:1}
+.mode{margin-left:auto;display:flex;gap:8px;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:.06em}
+.shell{max-width:var(--max);margin:22px auto;padding:0 18px 36px}
+.hero{padding:18px 0 0}
+h1{margin:0;font-size:26px;line-height:1.15;font-weight:800;letter-spacing:-.02em;color:#fff}
+.lede{margin:10px 0 0;color:var(--muted);font-size:13.5px;line-height:1.75}
+.lede strong{color:#fff;font-weight:600}
+.steps{margin-top:28px;border-top:1px solid var(--line)}
+.step{display:grid;grid-template-columns:28px 1fr;gap:14px;padding:22px 0;border-bottom:1px solid var(--line)}
+.n{font-family:var(--mono);font-size:11px;color:var(--muted);padding-top:3px}
+.step h3{margin:0;font-size:14px;font-weight:600;color:#fff}
+.step p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.75}
+.step p code{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.card{margin-top:28px;padding:22px 0 0;border:0;border-top:1px solid var(--line)}
+.cardHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.k{font-family:var(--mono);font-size:10px;letter-spacing:.10em;color:var(--muted);text-transform:uppercase}
+.k2{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.kv{padding:12px 0;border:0;border-bottom:1px solid var(--line)}
+.kv .v{margin-top:6px;font-weight:650;font-size:13px;color:#fff;word-break:break-all}
+.kv .v small{color:var(--muted);font-weight:600}
+.honesty{margin-top:18px;overflow:hidden;border:0;background:var(--yellow);color:#111}
+.honesty-top{padding:8px 12px;background:rgba(0,0,0,.06);display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:10px;color:#5b4100;border-bottom:1px solid rgba(0,0,0,.08)}
+.honesty-body{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.honesty-body{grid-template-columns:1fr}}
+.refused{font-family:Impact,Arial Black,sans-serif;font-size:18px;line-height:1;letter-spacing:.02em}
+.hint{font-size:12px;line-height:1.7;color:#1f2937;background:rgba(255,255,255,.45);padding:10px 12px}
+.honesty-foot{padding:8px 12px;background:rgba(0,0,0,.06);font-family:var(--mono);font-size:10px;color:#5b4100;border-top:1px solid rgba(0,0,0,.08)}
+.beGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:0}
+@media(max-width:640px){.beGrid{grid-template-columns:1fr}}
+.beGrid > div{padding:14px 0;border:0;border-bottom:1px solid var(--line);padding-right:14px}
+.beGrid .v{margin-top:4px;font-weight:800;color:#fff;font-size:13px}
+.formula{margin-top:14px;padding:12px 0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:12px;line-height:1.7;color:var(--muted)}
+.formula code{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.beFooter{margin-top:12px;padding:10px 0;font-weight:600;color:#fff;font-size:13px;border:0}
+.breakEven input[type=range]{width:100%;margin-top:8px;accent-color:#20b8cd;display:block}
+
+.ctas{margin-top:18px;display:flex;flex-wrap:wrap;gap:14px}
+.cta{font-size:13px;font-weight:600;text-decoration:none;line-height:1;padding:6px 0;border:0;border-bottom:1px solid var(--line);color:var(--bone)}
+.cta.primary{background:#fff;color:#08090b;border:0;border-radius:999px;padding:10px 18px;font-weight:700;line-height:1}
+.cta.primary:hover{background:#efece5;color:#08090b;border-color:transparent;text-decoration:none}
+.cta.ghost{color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.02em}
+.cta:hover{color:var(--signal);border-bottom-color:var(--signal);text-decoration:none}
+.foot{margin-top:20px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;color:var(--muted);font-size:11px;font-family:var(--mono)}
+.foot code{color:var(--muted);font-size:10px}</style><!--hex-->
+<div class="topbar">
+<div class="brand">Shop OS — Optimized Manufacturing</div>
+<div class="mode">
+<span>Shop OS on Solari</span></div></div>
+<div class="shell">
+<div class="hero">
+<h1>You make parts. We handle the office.</h1>
+<p class="lede">Pick a name. Get your shop address. Start quoting.</p><div class="funnel-pick" style="margin-top:14px;display:flex;gap:12px"><label style="display:inline-flex;align-items:center;gap:6px;font:11px var(--mono);color:var(--bone)"><input type="radio" name="funnelPick" value="bring" checked> Bring your shop</label><label style="display:inline-flex;align-items:center;gap:6px;font:11px var(--mono);color:var(--bone)"><input type="radio" name="funnelPick" value="start"> Start new shop</label></div><label class="k" for="shopInput" style="display:block;margin-top:16px">Your shop name</label><div style="display:flex;gap:10px;align-items:center;margin-top:8px"><input id="shopInput" value="Acme Precision" placeholder="Acme Precision" style="flex:1;max-width:280px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:#fff;font-size:14px;font-weight:600;outline:none"><span class="k2" style="color:var(--muted)">→ <span id="domainPreview" style="color:var(--signal);font-family:var(--mono);font-size:12px">acme-precision.getsolari.app</span></span></div><div class="k2" style="margin-top:6px;color:var(--muted)">Type your shop name — your address updates instantly. No logins.</div><div class="steps"><div class="step"><div class="n">01</div><div><h3>Claim</h3><p>Pick a name. You get <code>acme-precision.getsolari.app</code>.</p></div></div><div class="step"><div class="n">02</div><div><h3>Website</h3><p>Your site is live — inbox at https://acme-precision.getsolari.app, first RFQ ~4 min.</p></div></div><div class="step"><div class="n">03</div><div><h3>Quote</h3><p>Try 6205 — no CAD needed. We check it — if it can't be made well, you see why.</p></div></div><div class="step"><div class="n">04</div><div><h3>Break-even</h3><p>Drag sliders to your numbers — <a href="#breakEven" style="color:var(--signal);font:11px var(--mono)">calculator ↓</a> <span class="k2" data-be-preview style="color:var(--muted);font:11px var(--mono)">2/wk → not break-even — payment > margin. Raise RFQs or win rate.</span></p></div></div></div></div>
+<div class="card">
+<div class="cardHead"><span class="k">Your shop</span><span class="k2">Shop OS on Solari</span></div>
+<div class="grid2"><div class="kv"><div class="k">Shop</div><div class="v">Acme Precision<br><small style="font:11px var(--mono);color:var(--signal)">acme-precision.getsolari.app</small></div></div><div class="kv"><div class="k">URL</div><div class="v" style="font:12px var(--mono)"><a href="https://acme-precision.getsolari.app">https://acme-precision.getsolari.app</a></div></div></div><div class="ctas"><a id="createShopCta" class="cta primary" href="shop.html">Create your shop → shop.html</a></div></div><details class="card" style="margin-top:22px"><summary class="k" style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">How it works <span class="k2">break-even · honesty gate · part-card</span></summary><div style="padding-top:14px"><div class="kv k2" style="margin-top:2px">First quote <span style="font:11px var(--mono)">#d0c02d7818</span> · Part card <span style="font:11px var(--mono)">6205-c3259a26 · #c3259a26</span></div><div id="part-card" class="honesty" style="background:transparent;border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--bone)"><div class="honesty-top" style="color:var(--muted);border-color:var(--line);background:transparent">Part card — 6205 Deep-Groove · DFM PASS · #c3259a26</div><div class="honesty-body" style="color:var(--bone)"><div><div class="k">Spec</div><div class="v" style="font-size:13px">Bore 25 / OD 52 / Width 15 — 7 balls, 7 grooves</div><div style="margin-top:8px;font:11px var(--mono);color:var(--signal)">hash c3259a261f868443 · same part, same hash, every time</div></div><div><div class="k">Links</div><div style="margin-top:8px;display:flex;gap:14px"><a href="../part-card-factory/part-card.html" class="cta ghost">Part card — 6205</a></div></div></div></div><div class="honesty"><div class="honesty-top">Honesty gate — what a refused job looks like</div><div class="honesty-body"><div class="refused">REFUSED</div><div class="hint">This drawing isn&apos;t manufacturable — the STEP is non-manifold, so it would make a bad part. Close open edges, remove zero-thickness walls, re-export, resubmit.</div></div><div class="honesty-foot">We refuse jobs we can&apos;t make well — you always see the reason.</div></div>
+  <details id="breakEven" class="card breakEven" data-mc=65000 data-mp=1200 data-aj=280 data-wr=0.35 data-rq=2><summary class="k" style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Break-even calculator — the honest math (payment 1200/mo) <span class="k2">click to expand — the honest math</span></summary><div class="beGrid"><div><div class="k" title="RFQs/week">Quotes/week</div><div class="v"><span data-be=rfqsPerWeek>2</span></div><input type=range data-be-input=rfqsPerWeek min=0.5 max=20 step=0.5 value=2></div><div><div class="k" title="Win rate 0-1">Win rate</div><div class="v"><span data-be=winRate>35%</span></div><input type=range data-be-input=winRate min=10 max=60 step=1 value=35></div><div><div class="k" title="Avg $/job">Avg job value</div><div class="v"><span data-be=avgJobValue>280</span></div><input type=range data-be-input=avgJobValue min=50 max=2000 step=10 value=280></div><div><div class="k" title="Machine cost">Machine cost</div><div class="v"><span data-be=machineCost>$65,000</span></div><input type=range data-be-input=machineCost min=1000 max=200000 step=1000 value=65000></div><div><div class="k" title="Monthly payment">Monthly payment</div><div class="v"><span data-be=monthlyPayment>1200</span></div><input type=range data-be-input=monthlyPayment min=0 max=2500 step=50 value=1200></div><div><div class="k">Monthly revenue</div><div class="v"><span data-be=monthlyRevenue>849</span><small>/mo</small></div></div></div><div class="formula"><code>monthlyRevenue = quotesPerWeek × 4.33 × winRate × avgJobValue</code> = 2 × 4.33 × 0.35 × 280 = <strong>849/mo</strong><br><code>monthsToBreakEven = ceil(machineCost / (monthlyRevenue − monthlyPayment))</code> if net &gt; 0 else <em>not break-even</em> → <strong>not break-even at this volume</strong></div><div class="beFooter">2/wk → not break-even — payment > margin. Raise RFQs or win rate.</div></details>
+<div class="ctas" style="margin-top:16px"><a class="cta primary" href="https://acme-precision.getsolari.app">Open shop → acme-precision.getsolari.app</a><a class="cta ghost" href="../../docs/hero.html">Read the docs</a><a class="cta ghost" href="../part-card-factory/part-card.html">Part card — 6205</a><a class="cta ghost" href="./shop-config.json">Shop settings (JSON)</a></div><div class="foot"><span>Optimized Manufacturing</span><span>Shop OS on Solari · Bring Your Shop</span></div></div></div>
+<div class="foot" style="border-top:none;padding-top:12px">
+<span>Shop OS on Solari — browser, sandbox, desktop on one key.</span></div></div>
+<script>try{
+const p=new URLSearchParams(location.search);
+const f=p.get('funnel');
+const radios=document.querySelectorAll('input[name="funnelPick"]');
+function syncFunnel(v){
+  const qs=new URLSearchParams(location.search);if(v)qs.set('funnel',v);else qs.delete('funnel');history.replaceState(null,'',location.pathname+'?'+qs);try{localStorage.setItem('solari-chow.funnel',v);}catch{};document.body.dataset.funnel=v;
+  document.querySelectorAll('a.cta').forEach(a=>{try{const u=new URL(a.href,location.href);u.searchParams.set('funnel',v);a.href=u+'';}catch{}});
+  const el=document.querySelector('.mode span');
+  if(el) el.textContent=v==='bring'?'Bring Your Shop':v==='start'?'Start Your Shop':el.textContent;
+  const cta=document.getElementById('createShopCta');
+  if(cta){const u2=new URL(cta.getAttribute('href')||'shop.html',location.href);u2.searchParams.set('funnel',v);cta.href=u2.pathname+'?'+u2.searchParams;}
+  if(v==='start'){const d=document.querySelector('details.breakEven');if(d){d.open=true;const k2=d.querySelector('summary .k2');if(k2)k2.textContent='shown up front — the honest math';}}else if(v==='bring'){const d=document.querySelector('details.breakEven');if(d){d.open=false;const k2=d.querySelector('summary .k2');if(k2)k2.textContent='click to expand — the honest math';const be=document.querySelector('.breakEven');if(be&&+be.dataset.rq>5)be.open=true;}
+  }
+}
+if(f){
+  document.body.dataset.funnel=f;
+  try{localStorage.setItem('solari-chow.funnel',f);}catch{}
+  radios.forEach(r=> r.checked=r.value===f);
+  syncFunnel(f);
+} else {
+  try{const s=localStorage.getItem('solari-chow.funnel');if(s){document.body.dataset.funnel=s; radios.forEach(r=> r.checked=r.value===s); }}catch{}
+}
+radios.forEach(r=> r.addEventListener('change',()=>syncFunnel(r.value)));
+try{const cur=document.querySelector('input[name="funnelPick"]:checked');if(cur)syncFunnel(cur.value);}catch{}
+}catch{}</script><script>(()=>{const b=document.querySelector('.breakEven');if(!b)return;let mc=+b.dataset.mc,mp=+b.dataset.mp,aj=+b.dataset.aj;const I={};b.querySelectorAll('[data-be-input]').forEach(e=>I[e.getAttribute('data-be-input')]=e);const q=s=>b.querySelector(s),R=Math.round,C=Math.ceil;function u(){let j=aj,c=mp,a=mc;if(I.machineCost)a=+I.machineCost.value;if(I.avgJobValue)j=+I.avgJobValue.value;if(I.monthlyPayment)c=+I.monthlyPayment.value;const w=+I.winRate.value/100,r=+I.rfqsPerWeek.value,v=r*4.33*w*j,n=v-c;let t=null,l='not break-even at this volume';if(n>0){t=C(a/n);l=t+' months (net after $'+c.toLocaleString()+'/mo payment; '+C(a/v)+' mo gross)'}q('[data-be=winRate]').textContent=I.winRate.value+'%';q('[data-be=rfqsPerWeek]').textContent=r;if(q('[data-be=avgJobValue]'))q('[data-be=avgJobValue]').textContent='$'+j;if(q('[data-be=machineCost]'))q('[data-be=machineCost]').textContent='$'+a.toLocaleString();if(q('[data-be=monthlyPayment]'))q('[data-be=monthlyPayment]').textContent='$'+c;q('[data-be=monthlyRevenue]').textContent='$'+R(v).toLocaleString();const f=b.querySelector('.formula');if(f){const s=f.querySelectorAll('strong');if(s[0])s[0].textContent='$'+R(v).toLocaleString()+'/mo';if(s[1])s[1].textContent=l}const e=b.querySelector('.beFooter');if(e){if(t){let w=r+' quotes/week → break even in '+t+' months.';if(t>60)w+=' → '+Math.floor(t/12)+' years ('+t+' months)';if(t>120)w+=' long payback — try higher win rate or avg job';e.textContent=w;}else e.textContent=r+' quotes/week at these numbers → not break-even yet — the payment is bigger than the margin. Raise quotes/week or win rate.';const P=document.querySelector('[data-be-preview]');if(P)P.textContent=e.textContent;}}Object.values(I).forEach(e=>e.addEventListener('input',u));u();})();
+try{function S(s){s=s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/-{2,}/g,'-').replace(/^-+|-+$/g,'');s=s.slice(0,48).replace(/^-+|-+$/g,'');return !s||['www','api','solari','admin','app'].includes(s)?'my-shop':s}const I=document.getElementById('shopInput'),D=document.getElementById('domainPreview');if(I&&D)I.addEventListener('input',()=>{const s=S(I.value),d=s+'.getsolari.app',u='https://'+d;D.textContent=d;const m=document.querySelector('.step p code');if(m)m.textContent=d;const C=document.getElementById('createShopCta');if(C){const f=document.querySelector('input[name="funnelPick"]:checked');C.href='shop.html?funnel='+(f?f.value:'bring')+'&shop='+s}})}catch{}</script></html>

@@ -1,0 +1,11 @@
+{
+  "name": "chow-solari",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@solarisdk/browser": "^0.1.0",
+    "@solarisdk/sandbox": "^0.1.0",
+    "@solarisdk/desktop": "^0.1.0"
+  }
+}

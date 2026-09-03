@@ -1,0 +1,21 @@
+node_modules/
+.env
+.env*
+!.env.example
+dist/
+*.log
+__pycache__/
+.venv/
+replay/
+.DS_Store
+# Generated proof artifacts (recreated by `npm start` in mock or live mode)
+examples/honesty-desktop/honesty-proof.png
+examples/honesty-desktop/honesty-proof.html
+examples/part-card-factory/part-card.html
+docs/demo-60s.hq.mp4
+docs/slewing-cine-10s.hq.mp4
+
+# stray dual-write root (cwd copy, keep repo clean)
+/onboarding.html
+/shop-config.json
+/part-card.html

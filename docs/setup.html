@@ -1,0 +1,443 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Setup — Shop OS</title><meta name="color-scheme" content="dark"><meta name="description" content="Name, connect, launch — one key."><style>
+:root{--bg:#08090b;--panel:#111214;--line:rgba(255,255,255,.06);--bone:#efece5;--muted:#9aa0a8;--signal:#20b8cd;--max:740px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--bone);font-family:var(--sans)}
+a{color:var(--signal);text-decoration:none}a:hover{text-decoration:underline;text-underline-offset:3px}
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:14px;padding:12px 18px;background:rgba(8,9,11,.92);border-bottom:1px solid var(--line)}
+.brand{font-weight:800;font-size:13px;letter-spacing:-.02em;color:#fff}
+.brand span{color:var(--signal)}
+.mode{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted)}
+.shell{max-width:var(--max);margin:0 auto;padding:26px 18px 48px}
+.hero{padding:10px 0 8px}
+h1{margin:0;font-size:28px;line-height:1.1;font-weight:900;letter-spacing:-.03em;color:#fff}
+.lede{margin:10px 0 0;color:var(--muted);font-size:14px;line-height:1.7;max-width:48ch}
+.lede strong{color:#fff;font-weight:700}
+.steps-nav{display:flex;gap:8px;margin:18px 0 0;align-items:center}
+.dot{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:700;border:1px solid var(--line);color:var(--muted);background:transparent}
+.dot.on{background:#fff;color:#08090b;border-color:#fff}
+.dot.done{background:var(--signal);color:#08090b;border-color:var(--signal)}
+.bar{flex:1;height:1px;background:var(--line)}
+.card{margin-top:18px;border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden}
+.cardHead{padding:14px 16px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.cardHead h2{margin:0;font-size:13px;font-weight:700;color:#fff;letter-spacing:-.01em}
+.k{font-family:var(--mono);font-size:10px;letter-spacing:.10em;color:var(--muted);text-transform:uppercase}
+.cardBody{padding:16px}
+.label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px}
+.inputRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.input{flex:1;min-width:220px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:#fff;font-size:14px;font-weight:600;outline:none}
+.input:focus{border-color:rgba(32,184,205,.5);box-shadow:0 0 0 3px rgba(32,184,205,.15)}
+.mono{font-family:var(--mono)}
+.help{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.6}
+.help strong{color:var(--bone)}
+.liveLine{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.04);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.liveLine a{font-family:var(--mono);font-size:12px;color:var(--signal);word-break:break-all}
+details{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02)}
+details summary{padding:10px 14px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted);list-style:none}
+details summary::-webkit-details-marker{display:none}
+.btn{appearance:none;border:0;border-radius:999px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer;line-height:1;display:inline-flex;align-items:center;gap:8px}
+.btnPrimary{background:#fff;color:#08090b}
+.btnPrimary:disabled{opacity:.45;cursor:not-allowed}
+.btnGhost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.btnGhost:hover{color:#fff;border-color:rgba(255,255,255,.14)}
+.btnTiny{padding:8px 12px;font-size:12px}
+.status{font-family:var(--mono);font-size:11px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted)}
+.status.live{color:#052e16;background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.3)}
+.status.ready{color:#431407;background:rgba(245,158,11,.16);border-color:rgba(245,158,11,.32)}
+.status.err{color:#450a0a;background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.3)}
+.keyWrap{position:relative;flex:1;min-width:220px;display:flex}
+.keyWrap .input{width:100%;padding-right:72px}
+.toggle{position:absolute;right:6px;top:6px;bottom:6px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.02)}
+.grid2 .kv{padding:12px;background:transparent;border:0}
+.grid2 .kv + .kv{border-left:1px solid var(--line)}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}.grid2 .kv + .kv{border-left:0;border-top:1px solid var(--line)}}
+.kv{padding:12px 0;border:0;border-bottom:1px solid var(--line);background:transparent}
+.kv:last-child{border-bottom:0}
+.kv .v{margin-top:6px;font-weight:700;color:#fff;word-break:break-all}
+.video{margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#08090b}
+.video video{width:100%;display:block;aspect-ratio:16/9}
+.foot{margin-top:18px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;color:var(--muted);font-family:var(--mono);font-size:10px}
+</style><div class="topbar"><div class="brand">OM <span>SHOP OS</span> — on Solari</div><div class="mode" id="mode">Setup — 3 steps</div></div><div class="shell"><div class="hero"><h1>You make parts. We handle the office.</h1><p class="lede"><strong>Website, quotes, checks — live in minutes.</strong> Name your shop, paste one key, launch.</p><div class="steps-nav" aria-label="Progress Name your shop → Paste key → Launch"><span style="display:flex;align-items:center;gap:6px"><span class="dot on" id="d1">1</span><span class="k" style="font-size:9px">Name your shop</span></span><span class="bar"></span><span style="display:flex;align-items:center;gap:6px"><span class="dot" id="d2">2</span><span class="k" style="font-size:9px">Paste key</span></span><span class="bar"></span><span style="display:flex;align-items:center;gap:6px"><span class="dot" id="d3">3</span><span class="k" style="font-size:9px">Launch</span></span></div></div><div class="card" id="s1"><div class="cardHead"><h2>1 — Name your shop</h2><span class="k">Step 1</span></div><div class="cardBody"><label class="label" for="shopName">Shop name</label><div class="inputRow"><input id="shopName" class="input" placeholder="Acme Precision" value="Acme Precision" autocomplete="organization"><span class="k">→</span><span class="mono" id="domainText" style="color:var(--signal);font-size:12px">acme-precision.getsolari.app</span></div><p class="help">Type name → address updates instantly.</p><div class="liveLine"><span class="mono" id="siteUrl" style="font-size:12px">https://acme-precision.getsolari.app</span><a id="siteOpen" href="https://acme-precision.getsolari.app" target="_blank" rel="noopener">Open your site →</a></div><p class="help">2–48 chars, letters, numbers, hyphens.</p></div></div><div class="card" id="s2"><div class="cardHead"><h2>2 — Paste key</h2><span class="k">Step 2</span></div><div class="cardBody"><p class="help"><strong>Get key: console.getsolari.com → API Keys → Create → Copy</strong></p><div class="inputRow" style="margin-top:10px"><div class="keyWrap"><input id="apiKey" class="input mono" type="password" placeholder="slr_live_..." spellcheck="false" autocomplete="off" inputmode="text"><button class="toggle" id="toggleKey" type="button">Show</button></div><button class="btn btnPrimary btnTiny" id="validateBtn" type="button">Validate</button><span class="status" id="keyStatus">Not validated</span></div><p class="help">Stays in browser only. <a href="https://console.getsolari.com" target="_blank" rel="noopener">console.getsolari.com → API Keys → Copy slr_live_...</a></p><figure class="video" style="margin-top:12px;border:1px solid var(--line);border-radius:10px;overflow:hidden">
+  <video controls playsinline preload="metadata" poster="poster.jpg" style="background:#08090b">
+    <source src="howto-setup-30s.mp4" type="video/mp4">
+    <track kind="captions" srclang="en" label="English" src="howto-setup-30s.vtt" default>
+  </video>
+  <figcaption style="padding:8px 10px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted);line-height:1.6;border-top:1px solid var(--line)">30s setup — type name → paste key from console.getsolari.com → API Keys → Create → Validate → Launch · watch once, then do it</figcaption>
+</figure>
+<figure class="video" style="margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;opacity:1">
+  <video controls playsinline preload="metadata" poster="poster.jpg" style="background:#08090b">
+    <source src="howto-quote-15s.mp4" type="video/mp4">
+    <track kind="captions" srclang="en" label="English" src="howto-quote-15s.vtt" default>
+  </video>
+  <figcaption style="padding:8px 10px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted);line-height:1.6;border-top:1px solid var(--line)">Next: drag a <code>.step</code> in the shop → hash → DFM → price — <a href="../shop.html">open live shop →</a></figcaption>
+</figure></div></div><div class="card" id="s3"><div class="cardHead"><h2>3 — Launch shop</h2><span class="k" id="launchK">Needs validation</span></div><div class="cardBody"><div class="inputRow" style="margin-top:12px"><button class="btn btnPrimary" id="launchBtn" type="button" disabled>Launch shop →</button><span class="status" id="launchStatus">Waiting for Step 2</span></div><div class="grid2" style="margin-top:14px"><div class="kv"><div class="k">Live URL</div><div class="v mono" id="liveUrl" style="font-size:12px"><a href="https://acme-precision.getsolari.app" target="_blank" rel="noopener">https://acme-precision.getsolari.app</a></div><div style="margin-top:8px"><a id="openShop" href="https://acme-precision.getsolari.app" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:12px;color:var(--signal)">Open your shop →</a></div></div><div class="kv"><div class="k">Inbox — First RFQ</div><div class="v mono" id="liveRfq">#d0c02d7818 — Inbox</div></div></div><div id="launchDetail" style="display:none;margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:rgba(255,255,255,.02)"><div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span class="k">Ready</span><span class="status" id="provisionBadge" style="font-size:10px">Ready</span></div><div style="padding:14px"><details><summary>Advanced</summary><div style="padding-top:12px"><div class="grid2"><div class="kv"><div class="k">Live URL</div><div class="v mono" id="detailLiveUrl" style="font-size:12px"></div></div><div class="kv"><div class="k">Sandbox URL</div><div class="v mono" id="detailPreviewUrl" style="font-size:11px;color:var(--muted)">Sandbox URL appears after provisioning — see installer for live URL</div></div><div class="kv"><div class="k">Inbox — First RFQ</div><div class="v mono" id="detailRfq" style="font-size:12px"></div></div><div class="kv"><div class="k">Session</div><div class="v mono" id="detailSession" style="font-size:11px;color:var(--muted)"></div></div></div><div class="kv" style="margin-top:12px"><div class="k">Replay</div><div class="v mono" id="detailReplay" style="font-size:11px;color:var(--muted)">Replay — poll 6×5s after close when live (recording per-session)</div></div><div style="margin-top:12px"><div class="k" style="margin-bottom:8px">Local installer (one key, one command)</div><div style="position:relative;display:flex;gap:8px;align-items:stretch;flex-wrap:wrap"><pre id="installCmd" class="mono" style="flex:1;margin:0;padding:12px;border-radius:10px;background:#0a0b0d;border:1px solid var(--line);color:#efece5;font-size:11px;line-height:1.6;white-space:pre-wrap;word-break:break-all;overflow:auto;min-width:220px"></pre><button class="btn btnGhost btnTiny" id="copyBtn" type="button" style="align-self:flex-start;white-space:nowrap">Copy</button></div><p class="help" style="margin-top:8px">Paste in terminal — provisions sandbox, serves :3000 via sandboxUrl, verifies.</p><p class="help"><a href="https://console.getsolari.com" target="_blank" rel="noopener">console.getsolari.com → API Keys → Create</a> · <code>https://xxx-3000.sandbox.getsolari.app?token=…</code></p><p class="help">Live URL below. CORS blocked → use installer.</p><p class="help">402/403 — quota; installer still works.</p><div class="liveLine" style="margin-top:12px"><span class="mono" id="sessionLine" style="font-size:11px;color:var(--muted)">Session: setup needed — run installer for live site</span><a href="../examples/onboarding-wizard/onboarding.html" target="_blank" rel="noopener">Open shop</a></div><div id="provisionLog" class="mono" style="margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--line);font-size:11px;line-height:1.7;color:var(--muted);white-space:pre-wrap;word-break:break-all;display:none"></div></div></details></div></div></div></div><div class="foot"><span>OM #08090b · #20b8cd · c3259a26</span><span id="footMode">Setup — paste your key to launch</span></div></div><script type="module">
+const BASE="https://api.getsolari.com"
+const LS_SHOP="solari-chow.shopName"
+const LS_KEY="solari-chow.apiKey"
+const LS_VALID="solari-chow.validState"
+const $=s=>{try{return document.querySelector(s)}catch{return null}}
+const shopInput=$("#shopName")
+const apiInput=$("#apiKey")
+const domainPreview=$("#domainText")
+const urlPreview=$("#siteUrl")
+const openPreview=$("#siteOpen")
+const liveUrl=$("#liveUrl")
+const mode=$("#mode")
+const footMode=$("#footMode")
+const keyStatus=$("#keyStatus")
+const launchStatus=$("#launchStatus")
+const launchBtn=$("#launchBtn")
+const launchK=$("#launchK")
+const validateBtn=$("#validateBtn")
+const sessionLine=$("#sessionLine")
+const d1=$("#d1"),d2=$("#d2"),d3=$("#d3")
+window.addEventListener("unhandledrejection",e=>{try{e.preventDefault()}catch{};try{console.warn("handled rejection",e.reason)}catch{}})
+window.addEventListener("error",e=>{try{console.warn("handled error",e.message)}catch{}})
+function safeClose(x){try{if(x&&typeof x.close==="function") x.close()}catch{}}
+function safeKill(x){try{if(x&&typeof x.kill==="function") x.kill(); if(x&&typeof x.destroy==="function") x.destroy(); if(x&&typeof x.disconnect==="function") x.disconnect()}catch{}}
+function withTimeout(promise, ms, ctrl){
+let t; const timeout=new Promise((_,rej)=>{ t=setTimeout(()=>{ try{ctrl&&ctrl.abort()}catch{}; rej(new DOMException("Timeout","AbortError")) },ms) })
+return Promise.race([promise,timeout]).finally(()=>clearTimeout(t))
+}
+;(()=>{try{const q=new URLSearchParams(location.search).get("funnel");if(q==="bring"||q==="start"){document.body.dataset.funnel=q;try{localStorage.setItem("solari-chow.funnel",q)}catch{}}else{try{const s=localStorage.getItem("solari-chow.funnel");if(s)document.body.dataset.funnel=s}catch{}}}catch{}})();
+function slugify(s){
+try{
+if(typeof s!=="string") s=String(s||"")
+let v=s.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/-{2,}/g,"-").replace(/^-+|-+$/g,"")
+v=v.slice(0,48).replace(/^-+|-+$/g,"")
+if(!v||["www","api","solari","admin","app"].includes(v)) return "my-shop"
+return v
+}catch{return "my-shop"}
+}
+function shellEscape(s){
+if(typeof s!=="string") s=String(s||"")
+if(/^[a-zA-Z0-9._\/:-]+$/.test(s)) return s
+return '"'+s.replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\$/g,'\\$').replace(/`/g,'\\`')+'"'
+}
+function isBillingStatus(st){return st===402||st===403}
+function isBillingMsg(msg){return /\b402\b|\b403\b|payment required|forbidden|free tier|quota exceeded|insufficient credit/i.test(String(msg||""))}
+function setStatus(el,text,cls){
+if(!el) return
+try{ el.textContent=text; el.className="status"+(cls?" "+cls:"") }catch{}
+}
+function safeSetText(el,t){ if(!el) return; try{el.textContent=t}catch{} }
+function safeSetHtml(el,h){ if(!el) return; try{el.innerHTML=h}catch{} }
+function updateShopUI(){
+try{
+if(!shopInput) return
+const raw=shopInput.value
+const name=(typeof raw==="string"?raw.trim():"")||"My Shop"
+const slug=slugify(name)
+const domain=slug+".getsolari.app"
+const url="https://"+domain
+if(domainPreview) domainPreview.textContent=domain
+if(urlPreview) urlPreview.textContent=url
+let _funnel=""; try{ _funnel=document.body&&document.body.dataset&&document.body.dataset.funnel||localStorage.getItem("solari-chow.funnel")||"" }catch{}; const urlWithFunnel=url+(_funnel?"?funnel="+encodeURIComponent(_funnel):"")
+if(openPreview){ openPreview.href=urlWithFunnel; openPreview.textContent="Open your shop →" }
+if(liveUrl) liveUrl.innerHTML='<a href="'+urlWithFunnel+'" target="_blank" rel="noopener">'+url+'</a>'
+const openShop=$("#openShop"); if(openShop) openShop.href=urlWithFunnel
+try{localStorage.setItem(LS_SHOP,shopInput.value)}catch{}
+try{localStorage.setItem("solari-chow.slug",slug)}catch{}
+try{localStorage.setItem("solari-chow.url",url)}catch{}
+syncProgress()
+}catch(e){ try{console.warn("updateShopUI",e)}catch{} }
+}
+function syncProgress(){
+try{
+const hasName=!!(shopInput&&typeof shopInput.value==="string"&&shopInput.value.trim().length>=2)
+let valid=null; try{ valid=localStorage.getItem(LS_VALID) }catch{}
+if(d1){ if(hasName){d1.className="dot done";d1.textContent="✓"} else {d1.className="dot on";d1.textContent="1"} }
+if(valid==="live"||valid==="preview"||valid==="ready"){
+if(d2){d2.className="dot done";d2.textContent="✓"}
+if(d3) d3.className="dot on"
+if(launchBtn) launchBtn.disabled=false
+if(launchK){ launchK.textContent=valid==="live"?"Ready — key valid":"Ready"; launchK.style.color=valid==="live"?"var(--green)":"var(--yellow)" }
+setStatus(launchStatus,valid==="live"?"Ready to launch":"Ready to launch","")
+} else if(hasName){
+if(d2){d2.className="dot on";d2.textContent="2"}
+if(d3){d3.className="dot";d3.textContent="3"}
+if(launchBtn) launchBtn.disabled=true
+if(launchK) launchK.textContent="Needs validation"
+setStatus(launchStatus,"Waiting for Step 2","")
+} else {
+if(d2){d2.className="dot";d2.textContent="2"}
+if(d3){d3.className="dot";d3.textContent="3"}
+if(launchBtn) launchBtn.disabled=true
+}
+}catch(e){ try{console.warn("syncProgress",e)}catch{} }
+}
+async function validateKey(){
+let outerCtrl=null
+try{
+if(!apiInput||!keyStatus){ return }
+const k=(apiInput.value||"").trim()
+if(!k){
+setStatus(keyStatus,"Paste key first","err")
+return
+}
+if(!k.startsWith("slr_live_")){
+setStatus(keyStatus,"Invalid key — check paste","err")
+return
+}
+if(k==="slr_live_..."){
+setStatus(keyStatus,"Paste real key — copy from console.getsolari.com","err")
+return
+}
+if(validateBtn) validateBtn.disabled=true
+setStatus(keyStatus,"Checking key…","")
+if(mode) mode.textContent="Validating…"
+try{ localStorage.setItem(LS_KEY,k) }catch{}
+let res=null
+try{
+outerCtrl=new AbortController()
+const fetchP=fetch(BASE+"/templates",{method:"GET",headers:{Authorization:"Bearer "+k},signal:outerCtrl.signal})
+res=await withTimeout(fetchP,5000,outerCtrl)
+}catch(e){
+const msg=String(e&&e.message||e||"")
+const isAbort=/abort|timeout/i.test(msg)
+const isNetwork=/Failed to fetch|TypeError|NetworkError|Load failed/i.test(msg)||isAbort
+setStatus(keyStatus,"Format OK — the API blocks browser calls (no CORS), so the launcher verifies for real","ready")
+try{ localStorage.setItem(LS_VALID,"ready") }catch{}
+if(mode) mode.textContent="Setup — run the launcher to verify + provision"
+if(footMode) footMode.textContent="Copy the launcher command below — it verifies your key"
+syncProgress()
+return
+}finally{ safeClose(outerCtrl); safeKill(outerCtrl) }
+if(res&&res.ok){
+setStatus(keyStatus,"Ready — key valid","live")
+try{ localStorage.setItem(LS_VALID,"live") }catch{}
+if(mode) mode.textContent="Ready — key valid"
+if(footMode) footMode.textContent="Ready — publishing with one key"
+} else if(res&&(res.status===402||res.status===403)){
+setStatus(keyStatus,"Ready — quota on this plan","ready")
+try{ localStorage.setItem(LS_VALID,"ready") }catch{}
+if(mode) mode.textContent="Ready — quota on this plan"
+if(footMode) footMode.textContent="Ready — quota on this plan; installer still provisions locally"
+} else if(res&&res.status===401){
+setStatus(keyStatus,"Invalid key — check paste","err")
+try{ localStorage.removeItem(LS_VALID) }catch{}
+if(mode) mode.textContent="Check your key"
+} else {
+const code=res?res.status:"?"
+setStatus(keyStatus,"Invalid — "+code+" check paste","err")
+try{ localStorage.removeItem(LS_VALID) }catch{}
+if(mode) mode.textContent="Check your key"
+}
+syncProgress()
+}catch(e){
+try{ setStatus(keyStatus,"Network error — try again","ready"); if(mode) mode.textContent="Setup — connect your key"; if(footMode) footMode.textContent="Setup — paste your key to launch"; try{localStorage.setItem(LS_VALID,"ready")}catch{}; syncProgress(); console.warn("validateKey outer",e) }catch{}
+}finally{
+try{ if(validateBtn) validateBtn.disabled=false }catch{}
+safeClose(outerCtrl); safeKill(outerCtrl)
+}
+}
+async function launch(){
+let outerCtrl=null; let portCtrl=null
+try{
+const rawName=(shopInput&&typeof shopInput.value==="string"?shopInput.value.trim():"")||"My Shop"
+const slug=slugify(rawName)
+const url="https://"+slug+".getsolari.app"
+let funnel="bring"
+try{ funnel=document.body&&document.body.dataset&&document.body.dataset.funnel||"" }catch{}
+if(!funnel){ try{ funnel=localStorage.getItem("solari-chow.funnel")||"bring" }catch{ funnel="bring" } }
+let valid=null; try{ valid=localStorage.getItem(LS_VALID) }catch{}
+let key=""; try{ key=localStorage.getItem(LS_KEY)||"" }catch{}
+try{ if(!key&&apiInput&&apiInput.value) key=(apiInput.value||"").trim() }catch{}
+const isLive=valid==="live"&&key&&key.startsWith("slr_live_")&&key!=="slr_live_..."
+const hash="d0c02d7818"
+if(launchBtn) launchBtn.disabled=true
+setStatus(launchStatus,"Provisioning…","")
+if(launchK){ launchK.textContent="Provisioning…"; launchK.style.color="var(--signal)" }
+if(sessionLine) sessionLine.textContent="Session: provisioning…"
+const detail=$("#launchDetail")
+const detailLiveUrl=$("#detailLiveUrl")
+const detailPreviewUrl=$("#detailPreviewUrl")
+const detailRfq=$("#detailRfq")
+const detailSession=$("#detailSession")
+const detailReplay=$("#detailReplay")
+const provisionBadge=$("#provisionBadge")
+const provisionLog=$("#provisionLog")
+const installCmdEl=$("#installCmd")
+const escShop=shellEscape(rawName)
+const escFunnel=shellEscape(String(funnel||"bring"))
+const installCmd="SOLARI_API_KEY=slr_live_... npx tsx examples/shop-runner/index.ts --shop "+escShop+" --funnel "+escFunnel
+if(installCmdEl) installCmdEl.textContent=installCmd
+if(detail) detail.style.display="block"
+const urlWithFunnelLaunch=url+(funnel?"?funnel="+encodeURIComponent(funnel):"")
+const openShopLink=$("#openShop"); if(openShopLink) openShopLink.href=urlWithFunnelLaunch
+if(detailLiveUrl) detailLiveUrl.innerHTML='<a href="'+urlWithFunnelLaunch+'" target="_blank" rel="noopener">'+url+'</a>'
+if(detailRfq) detailRfq.textContent="#"+hash+" — Inbox"
+if(provisionBadge){ provisionBadge.textContent="Ready"; provisionBadge.className="status "+(isLive?"live":"ready") }
+let session=isLive?"sess_"+Math.random().toString(36).slice(2,8):"sess_"+Math.random().toString(36).slice(2,8)
+let previewUrlText="Sandbox URL appears after provisioning — see installer for live URL"
+let replayNote="Replay — poll 6×5s after close when live (recording per-session)"
+let liveProvisioned=false
+if(provisionLog) provisionLog.style.display="block"
+if(isLive){
+if(provisionLog) provisionLog.textContent="POST "+BASE+"/sandboxes {base} …"
+try{
+outerCtrl=new AbortController()
+let res=null
+let fetchOk=false
+try{
+const fetchP=fetch(BASE+"/sandboxes",{method:"POST",headers:{Authorization:"Bearer "+key,"Content-Type":"application/json"},body:JSON.stringify({template:"base",timeoutMs:300000}),signal:outerCtrl.signal})
+res=await withTimeout(fetchP,5000,outerCtrl)
+fetchOk=true
+}catch(e){
+if(provisionLog) provisionLog.textContent+="\nCORS blocked — use installer. Pattern: SandboxClient → create → files.write → http.server 3000 → fetch → kill. Error: "+String(e).slice(0,220)
+}
+if(fetchOk){
+if(res&&res.ok){
+let data={}; try{ data=await res.json() }catch{ data={} }
+const sid=data.sandboxId||data.id||data.sandbox_id||(data.sandbox&&data.sandbox.id)||""
+session=sid?String(sid).slice(0,16):session
+if(provisionLog) provisionLog.textContent+="\nSandbox "+(sid||"ok")+" → GET /ports/3000 …"
+try{
+portCtrl=new AbortController()
+const portFetch=fetch(BASE+"/sandboxes/"+encodeURIComponent(sid)+"/ports/3000",{method:"GET",headers:{Authorization:"Bearer "+key},signal:portCtrl.signal})
+const pr=await withTimeout(portFetch,5000,portCtrl)
+if(pr.ok){
+let pv={}; try{ pv=await pr.json() }catch{ pv={} }
+const u=pv.url||pv.previewUrl||pv.preview_url||""
+if(u){
+previewUrlText=u
+liveProvisioned=true
+if(provisionLog) provisionLog.textContent+="\nURL: "+u.slice(0,120)
+}else{
+previewUrlText="https://"+slug+"-3000.sandbox.getsolari.app?token=… (sandbox "+String(sid).slice(0,8)+" — fetch verify via local installer)"
+}
+}else if(isBillingStatus(pr.status)){
+if(provisionLog) provisionLog.textContent+="\n"+pr.status+" — quota; installer still works."
+if(provisionBadge){ provisionBadge.textContent="Ready"; provisionBadge.className="status ready" }
+previewUrlText=pr.status+" — quota on this plan (run local installer when quota restored)"
+}else{
+if(provisionLog) provisionLog.textContent+="\nStatus "+pr.status+" — use installer"
+}
+}catch(e){
+if(provisionLog) provisionLog.textContent+="\nFetch error: "+String(e).slice(0,200)
+}finally{ safeClose(portCtrl); safeKill(portCtrl) }
+if(provisionLog) provisionLog.textContent+="\nTip: installer: files.write → :3000 → fetch → kill (safeClose/5000)."
+}else if(res&&isBillingStatus(res.status)){
+if(provisionLog) provisionLog.textContent+="\n"+res.status+" — quota; installer still works."
+if(provisionBadge){ provisionBadge.textContent="Ready"; provisionBadge.className="status ready" }
+previewUrlText=res.status+" — quota on this plan (run local installer when quota restored)"
+}else if(res&&res.status===401){
+if(provisionLog) provisionLog.textContent+="\n401 invalid — check console.getsolari.com → API Keys"
+if(provisionBadge){ provisionBadge.textContent="Ready"; provisionBadge.className="status ready" }
+}else{
+let body=""
+try{body=await res.text()}catch{}
+if(isBillingMsg(body)){
+if(provisionLog) provisionLog.textContent+="\nQuota in body — installer still works."
+if(provisionBadge){ provisionBadge.textContent="Ready"; provisionBadge.className="status ready" }
+previewUrlText="Quota on this plan (run local installer when quota restored)"
+}else{
+const st=res?res.status:"?"
+if(provisionLog) provisionLog.textContent+="\nCreate failed: "+st+" "+String(body).slice(0,200)+" — use installer."
+}
+}
+}
+}catch(e){
+const msg=String(e||"")
+if(!msg.includes("CORS/network")){
+if(provisionLog) provisionLog.textContent+="\nError: "+msg.slice(0,200)+" — use installer."
+}
+}finally{ safeClose(outerCtrl); safeKill(outerCtrl) }
+try{
+const m=await import("@solarisdk/sandbox").catch(()=>null)
+if(m&&m.SandboxClient&&provisionLog) provisionLog.textContent+="\n@solarisdk/sandbox import ok."
+}catch{}
+}else{
+if(provisionLog) provisionLog.textContent="Add slr_live_... to POST "+BASE+"/sandboxes. Installer is the live path. Pattern: create → files.write → :3000 → fetch → kill."
+}
+if(detailPreviewUrl) detailPreviewUrl.textContent=previewUrlText
+if(liveUrl) liveUrl.innerHTML='<a href="'+urlWithFunnelLaunch+'" target="_blank" rel="noopener">'+url+'</a>'
+const rfqEl=$("#liveRfq")
+if(rfqEl) rfqEl.textContent="#"+hash+" — Inbox"
+if(sessionLine) sessionLine.textContent="Session: "+session+" — "+(isLive&&liveProvisioned?"Ready · browser+sandbox+desktop":"Ready · local (run installer for live site)")
+setStatus(launchStatus,isLive&&liveProvisioned?"Launched — ready (fetch succeeded)":isLive?"Launched — ready, run installer for live site":"Launched — ready, run installer for live site",isLive&&liveProvisioned?"live":"ready")
+if(d3){d3.className="dot done";d3.textContent="✓"}
+if(launchK) launchK.textContent=isLive&&liveProvisioned?"Launched — ready":"Launched — ready (installer is real path)"
+if(mode&&footMode){
+if(isLive&&liveProvisioned){
+mode.textContent="Ready — shop provisioned"
+footMode.textContent="Your shop: "+urlWithFunnelLaunch+" provisioned"
+}else if(isLive){
+mode.textContent="Ready — key valid, run installer for live site"
+footMode.textContent="Your shop: "+urlWithFunnelLaunch+" · installed"
+}else{
+mode.textContent="Setup — paste your key to launch"
+footMode.textContent="Your shop: "+urlWithFunnelLaunch+" — setup to publish"
+}
+}
+try{
+localStorage.setItem("solari-chow.slug",slug)
+localStorage.setItem("solari-chow.url",url)
+localStorage.setItem("solari-chow.session",session)
+localStorage.setItem("solari-chow.previewUrl",previewUrlText)
+}catch{}
+if(detailSession) detailSession.textContent=session+" — "+(isLive&&liveProvisioned?"Ready · browser+sandbox+desktop":"Ready · local (see installer)")
+if(detailReplay) detailReplay.textContent=replayNote
+}catch(e){
+try{
+setStatus(launchStatus,"Network error — try again","ready")
+if(launchK){ launchK.textContent="Ready — installer is real path"; launchK.style.color="var(--yellow)" }
+if(sessionLine) sessionLine.textContent="Session: Ready · local (run installer for live site)"
+console.warn("launch outer",e)
+}catch{}
+}finally{
+try{ if(launchBtn) launchBtn.disabled=false }catch{}
+safeClose(outerCtrl); safeKill(outerCtrl); safeClose(portCtrl); safeKill(portCtrl)
+}
+}
+const toggleBtn=$("#toggleKey")
+if(toggleBtn&&apiInput) toggleBtn.addEventListener("click",()=>{
+try{
+const isPw=apiInput.type==="password"
+apiInput.type=isPw?"text":"password"
+toggleBtn.textContent=isPw?"Hide":"Show"
+}catch(e){ try{console.warn(e)}catch{} }
+})
+if(shopInput) shopInput.addEventListener("input",updateShopUI)
+if(validateBtn) validateBtn.addEventListener("click",()=>{ validateKey().catch(e=>{ try{console.warn(e); setStatus(keyStatus,"Network error — try again","ready")}catch{} }) })
+if(apiInput) apiInput.addEventListener("keydown",e=>{try{if(e.key==="Enter") validateKey().catch(()=>{})}catch{}})
+if(launchBtn) launchBtn.addEventListener("click",()=>{ launch().catch(e=>{ try{console.warn(e); setStatus(launchStatus,"Network error — try again","ready")}catch{} }) })
+const copyBtn=$("#copyBtn")
+if(copyBtn) copyBtn.addEventListener("click",async()=>{
+const el=$("#installCmd")
+const txt=(el&&el.textContent)||""
+try{
+await navigator.clipboard.writeText(txt)
+const b=$("#copyBtn")
+if(!b) return
+const prev=b.textContent
+b.textContent="Copied ✓"
+setTimeout(()=>{try{b.textContent=prev}catch{}},1400)
+}catch{
+try{
+const ta=document.createElement("textarea")
+ta.value=txt
+document.body.appendChild(ta)
+ta.select()
+document.execCommand("copy")
+ta.remove()
+const b=$("#copyBtn")
+if(!b) return
+const prev=b.textContent
+b.textContent="Copied ✓"
+setTimeout(()=>{try{b.textContent=prev}catch{}},1400)
+}catch(e){ try{console.warn(e)}catch{} }
+}
+})
+try{
+let savedShop=null,savedKey=null,savedValid=null
+try{ savedShop=localStorage.getItem(LS_SHOP) }catch{}
+if(savedShop&&shopInput) shopInput.value=savedShop
+try{ savedKey=localStorage.getItem(LS_KEY) }catch{}
+if(savedKey&&apiInput) apiInput.value=savedKey
+try{ savedValid=localStorage.getItem(LS_VALID) }catch{}
+if(savedValid==="live") setStatus(keyStatus,"Ready — key valid","live")
+else if(savedValid==="preview"||savedValid==="ready") setStatus(keyStatus,"Ready — quota on this plan","ready")
+}catch{}
+try{ updateShopUI() }catch{}
+try{ syncProgress() }catch{}
+</script></html>

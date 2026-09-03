@@ -1,0 +1,12 @@
+{
+  "name": "chow-fleet",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts"
+  },
+  "dependencies": {
+    "tsx": "^4",
+    "@solarisdk/browser": "^0.1.0"
+  }
+}

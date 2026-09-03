@@ -1,0 +1,13 @@
+{
+  "name": "part-card-factory",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts"
+  },
+  "dependencies": {
+    "tsx": "^4",
+    "@solarisdk/sandbox": "^0.1.0",
+    "@solarisdk/browser": "^0.1.0"
+  }
+}

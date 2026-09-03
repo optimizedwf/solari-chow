@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Triple-Row Roller Slewing Bearing — Cinematic Cutaway</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #08090b; }
+  canvas { display: block; }
+  #hud {
+    position: fixed; left: 28px; bottom: 24px; color: #dfe3e8;
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    user-select: none; pointer-events: none; line-height: 1.5;
+  }
+  #hud .t { font-size: 15px; letter-spacing: .32em; font-weight: 600; }
+  #hud .s { font-size: 11px; letter-spacing: .12em; color: #8b929c; margin-top: 4px; }
+  #hud .r { font-size: 11px; letter-spacing: .12em; color: #6f7a86; margin-top: 10px;
+            border-top: 1px solid rgba(255,255,255,.12); padding-top: 8px; width: max-content; }
+  #hint {
+    position: fixed; right: 302px; top: 16px; color: #5d666f;
+    font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 10px;
+    letter-spacing: .14em; text-align: right; pointer-events: none; line-height: 1.7;
+  }
+  #err {
+    position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+    background: #3d0f12; color: #ffb4ae; border: 1px solid #7a2a2e;
+    font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+    padding: 10px 16px; border-radius: 6px; display: none; max-width: 70vw; z-index: 99;
+  }
+  .lil-gui { --background-color: rgba(13,15,18,.88); --widget-color: #2a2f36;
+             --focus-color: #3a424c; --hover-color: #333a43; --text-color: #cdd3da;
+             --title-background-color: rgba(24,27,31,.92); --font-family: "SF Mono", ui-monospace, Menlo, monospace;
+             --font-size: 11px; --input-font-size: 11px; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "lil-gui": "https://cdn.jsdelivr.net/npm/lil-gui@0.19.2/+esm"
+  }
+}
+</script>
+</head>
+<body>
+<div id="hud">
+  <div class="t">TRIPLE-ROW ROLLER SLEWING BEARING</div>
+  <div class="s">Ø 1.65 m SWING &nbsp;·&nbsp; 2 × AXIAL ROWS + 1 × RADIAL ROW &nbsp;·&nbsp; EXTERNAL GEAR 96T &nbsp;·&nbsp; FULLY PROCEDURAL — NO ASSETS</div>
+  <div class="r" id="readout">SLEW 01 &nbsp;·&nbsp; CUTAWAY — &nbsp;·&nbsp; — RPM</div>
+</div>
+<div id="hint">DRAG — ORBIT<br>SCROLL — ZOOM<br>RIGHT PANEL — CONTROLS</div>
+<div id="err"></div>
+
+<script>
+  // Robustness: surface any load/runtime failure on screen instead of a black page.
+  const errBox = document.getElementById('err');
+  function showError(msg){ errBox.style.display = 'block'; errBox.textContent = 'ERROR: ' + msg; }
+  window.addEventListener('error', e => showError(e.message || e.type));
+  window.addEventListener('unhandledrejection', e => showError(e.reason && e.reason.message || 'unhandled rejection'));
+  setTimeout(() => { if (!window.__sceneReady) showError('Still loading — Three.js/lil-gui come from jsdelivr CDN. Check network connection.'); }, 15000);
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import GUI from 'lil-gui';
+
+try { main(); } catch (e) { showError(e.message); console.error(e); }
+
+function main() {
+
+// Headless-screenshot mode (#shot): render a few frames, then stop — deterministic captures.
+// Probe flags: #shot-direct = bypass composer; #shot-nossao = RenderPass instead of SSAOPass.
+const SHOT = location.hash.indexOf('shot') !== -1;
+const PROBE_DIRECT = location.hash.indexOf('direct') !== -1;
+const PROBE_NOSSAO = location.hash.indexOf('nossao') !== -1;
+const CINE = location.hash.indexOf('cine') !== -1;   // deterministic offline capture: window.__cineFrame(i) → JPEG
+const CLEAN = location.hash.indexOf('clean') !== -1; // #cine-clean: capture without the demo panel/hint/cursor overlay — B-roll grade
+if (CLEAN) { const _h=document.getElementById('hint'); if(_h) _h.style.display='none'; addEventListener('DOMContentLoaded',()=>{ const g=document.querySelector('.lil-gui'); if(g) g.style.display='none'; const h=document.getElementById('hint'); if(h) h.style.display='none'; }); }
+const MOBILE = location.hash.indexOf('mobile') !== -1;   // #cine-mobile: 1080×1920 @PR2 → 2160×3840 portrait, UI scaled up
+const Q = new URLSearchParams(location.search);           // probe overrides: ?k=0.05&m=0.03&n=0.002&l=krfhe&v=0..1&cam=close
+
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const TAU = Math.PI * 2;
+
+// Ring cross-section dimensions (metres). Bearing axis = Y.
+const R_OUTER = 0.780;   // outer ring OD (teeth root)
+const R_BORE  = 0.680;   // outer ring bore (radial race)
+const R_LIMB  = 0.560;   // inner edge of outer-ring limbs
+const R_IN_TIP = 0.670;  // inner ring face outer edge
+const R_IN_GRV = 0.630;  // inner ring radial-groove OD
+const R_IN_FACE = 0.420; // inner ring face inner edge
+
+const AX_R = 0.62, AX_RR = 0.040, AX_H = 0.072, AX_Y = 0.115, AX_N = 40;   // axial roller rows
+const RD_R = 0.655, RD_RR = 0.025, RD_L = 0.052, RD_N = 56;                // radial roller row
+const N_TEETH = 96, TOOTH_ROOT = 0.775;                                    // external gear
+const OB_N = 28, OB_R = 0.700;                                             // outer-ring bolts
+const IB_N = 18, IB_R = 0.470;                                             // inner-ring bolts
+
+const MAX_WEDGE = 2.0;     // rad, ~115° max cutaway
+const CAM0 = new THREE.Vector3(1.15, 0.85, 2.95);
+const WEDGE_CENTER = Math.atan2(CAM0.z, CAM0.x); // cut faces the initial camera
+
+const params = {
+  rotationSpeed: 0.6, autoOrbit: true,
+  reveal: 0.62,
+  keyIntensity: 460, keyColor: '#ffe2c2',
+  rimIntensity: 4.6, rimColor: '#9cc2ff',
+  fillIntensity: 0.9, exposure: 1.18,
+  bloomStrength: 0.32, bloomThreshold: 0.92, bloomRadius: 0.4,
+  dofEnabled: true, dofFocus: 2.6, dofAperture: 0.03, dofMaxBlur: 0.010,
+  ssao: true, ssaoRadius: 0.3, ssaoMaxDist: 0.05,
+  fxaa: true,
+};
+if (Q.has('v')) params.reveal = Math.min(Math.max(parseFloat(Q.get('v')) || 0, 0), 1);
+
+/* ============================================================
+   RENDERER / SCENE / CAMERA
+   ============================================================ */
+const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: SHOT || CINE });
+renderer.useLegacyLights = false;                       // physically-based lighting
+renderer.toneMapping = THREE.ACESFilmicToneMapping;     // cinematic filmic curve
+renderer.toneMappingExposure = params.exposure;         // high exposure
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;       // soft studio shadows
+const PR = (SHOT || CINE) ? (MOBILE ? 2 : 1) : Math.min(window.devicePixelRatio || 1, 1.5);   // SSAO+bloom+bokeh stay fluid on Retina
+renderer.setPixelRatio(PR);
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0b0d);
+scene.fog = new THREE.Fog(0x0a0b0d, 7, 16);
+
+const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.05, 60);
+camera.position.copy(CAM0);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, -0.02, 0);
+if (Q.get('cam') === 'close') {           // probe: macro shot on the exposed rollers
+  camera.position.set(0.85, 0.32, 1.75);
+  controls.target.set(0.18, 0.04, 0.42);
+}
+controls.enableDamping = true; controls.dampingFactor = 0.06;
+controls.minDistance = 1.4; controls.maxDistance = 9;
+controls.maxPolarAngle = 1.48;
+controls.autoRotate = params.autoOrbit && !SHOT && !CINE; controls.autoRotateSpeed = 0.45;
+
+/* ============================================================
+   PROCEDURAL CANVAS TEXTURES — machined metal / rubber / floor
+   ============================================================ */
+function metalMaps({ base, grooveAlpha, grooves, scratches, blotches, smudges, speckle }) {
+  const S = 1024;
+  // roughness map: final roughness = material.roughness(=1) × texel
+  const rc = document.createElement('canvas'); rc.width = rc.height = S;
+  const g = rc.getContext('2d');
+  g.fillStyle = base; g.fillRect(0, 0, S, S);
+  for (let i = 0; i < blotches; i++) {                              // casting blotch
+    const x = Math.random() * S, y = Math.random() * S, r = 60 + Math.random() * 200;
+    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+    const c = Math.random() < 0.5 ? 255 : 0, a = 0.03 + Math.random() * 0.05;
+    gr.addColorStop(0, `rgba(${c},${c},${c},${a})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  for (let i = 0; i < grooves; i++) {                               // lathing grooves (circumferential)
+    const y = Math.random() * S, amp = 1 + Math.random() * 2.5;
+    g.strokeStyle = `rgba(${Math.random() < 0.6 ? '0,0,0' : '255,255,255'},${grooveAlpha * (0.4 + Math.random() * 0.9)})`;
+    g.lineWidth = 0.5 + Math.random() * 1.4;
+    g.beginPath(); g.moveTo(0, y);
+    g.quadraticCurveTo(S * 0.5, y + (Math.random() - 0.5) * amp * 2, S, y + (Math.random() - 0.5) * amp);
+    g.stroke();
+  }
+  for (let i = 0; i < scratches; i++) {                             // micro-scratches
+    const x = Math.random() * S, y = Math.random() * S;
+    const dx = (Math.random() < 0.85 ? 1 : -1) * (30 + Math.random() * 260);
+    const dy = (Math.random() - 0.5) * 26;
+    g.strokeStyle = `rgba(${Math.random() < 0.5 ? '255,255,255' : '0,0,0'},${0.03 + Math.random() * 0.07})`;
+    g.lineWidth = Math.random() < 0.8 ? 1 : 1.8;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + dx, y + dy); g.stroke();
+  }
+  for (let i = 0; i < smudges; i++) {                               // oil smudges = smoother = darker
+    const x = Math.random() * S, y = Math.random() * S, r = 80 + Math.random() * 180;
+    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, `rgba(0,0,0,${0.12 + Math.random() * 0.14})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  // bump map
+  const bc = document.createElement('canvas'); bc.width = bc.height = S;
+  const b = bc.getContext('2d');
+  b.fillStyle = '#808080'; b.fillRect(0, 0, S, S);
+  for (let i = 0; i < blotches; i++) {
+    const x = Math.random() * S, y = Math.random() * S, r = 60 + Math.random() * 200;
+    const gr = b.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, `rgba(${Math.random() < 0.5 ? '140,140,140' : '116,116,116'},0.5)`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    b.fillStyle = gr; b.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  for (let i = 0; i < grooves; i++) {
+    const y = Math.random() * S;
+    b.strokeStyle = `rgba(60,60,60,${0.25 + Math.random() * 0.3})`;
+    b.lineWidth = 0.5 + Math.random() * 1.6;
+    b.beginPath(); b.moveTo(0, y); b.lineTo(S, y + (Math.random() - 0.5) * 4); b.stroke();
+  }
+  for (let i = 0; i < scratches; i++) {
+    const x = Math.random() * S, y = Math.random() * S;
+    const dx = (Math.random() < 0.85 ? 1 : -1) * (30 + Math.random() * 260), dy = (Math.random() - 0.5) * 26;
+    b.strokeStyle = `rgba(${Math.random() < 0.5 ? '200,200,200' : '40,40,40'},${0.15 + Math.random() * 0.25})`;
+    b.lineWidth = 1;
+    b.beginPath(); b.moveTo(x, y); b.lineTo(x + dx, y + dy); b.stroke();
+  }
+  const id = b.getImageData(0, 0, S, S), d = id.data;               // machining speckle
+  for (let i = 0; i < d.length; i += 4) {
+    if (Math.random() < speckle) { const v = (Math.random() - 0.5) * 46; d[i] += v; d[i + 1] += v; d[i + 2] += v; }
+  }
+  b.putImageData(id, 0, 0);
+  const rough = new THREE.CanvasTexture(rc), bump = new THREE.CanvasTexture(bc);
+  for (const t of [rough, bump]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); }
+  return { rough, bump };
+}
+
+function noiseBump(strength) {  // rubber mottling
+  const S = 512, c = document.createElement('canvas'); c.width = c.height = S;
+  const x = c.getContext('2d');
+  x.fillStyle = '#808080'; x.fillRect(0, 0, S, S);
+  const id = x.getImageData(0, 0, S, S), d = id.data;
+  for (let i = 0; i < d.length; i += 4) { const v = (Math.random() - 0.5) * strength; d[i] += v; d[i + 1] += v; d[i + 2] += v; }
+  x.putImageData(id, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+
+function floorMaps() {
+  const S = 1024, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d');
+  g.fillStyle = '#101215'; g.fillRect(0, 0, S, S);
+  const gr = g.createRadialGradient(S / 2, S / 2, S * 0.02, S / 2, S / 2, S * 0.5);
+  gr.addColorStop(0, 'rgba(44,48,56,0.5)'); gr.addColorStop(0.55, 'rgba(18,20,24,0.6)'); gr.addColorStop(1, 'rgba(0,0,0,1)');
+  g.fillStyle = gr; g.fillRect(0, 0, S, S);
+  const id = g.getImageData(0, 0, S, S), d = id.data;
+  for (let i = 0; i < d.length; i += 4) { const v = (Math.random() - 0.5) * 10; d[i] += v; d[i + 1] += v; d[i + 2] += v; }
+  g.putImageData(id, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const r = document.createElement('canvas'); r.width = r.height = 256;
+  const rg = r.getContext('2d'); rg.fillStyle = '#f2f2f2'; rg.fillRect(0, 0, 256, 256);   // fully rough floor
+  const rt = new THREE.CanvasTexture(r);
+  return { map: t, rough: rt };
+}
+
+const steelMaps   = metalMaps({ base: '#6e6e6e', grooveAlpha: 0.10, grooves: 300, scratches: 420, blotches: 20, smudges: 7, speckle: 0.10 });
+const darkMaps    = metalMaps({ base: '#585858', grooveAlpha: 0.09, grooves: 260, scratches: 320, blotches: 26, smudges: 9, speckle: 0.14 });
+const chromeMaps  = metalMaps({ base: '#232323', grooveAlpha: 0.05, grooves: 180, scratches: 140, blotches: 6,  smudges: 4, speckle: 0.02 });
+const rubberBump  = noiseBump(70);
+const floorTx     = floorMaps();
+steelMaps.rough.repeat.set(6, 3);  steelMaps.bump.repeat.set(6, 3);
+darkMaps.rough.repeat.set(5, 2);   darkMaps.bump.repeat.set(5, 2);
+chromeMaps.rough.repeat.set(3, 1);
+floorTx.map.repeat.set(4, 4);      floorTx.rough.repeat.set(4, 4);
+
+/* ============================================================
+   MATERIALS
+   ============================================================ */
+const matOuter = new THREE.MeshPhysicalMaterial({
+  color: 0x5b6067, metalness: 0.92, roughness: 1.0, roughnessMap: steelMaps.rough,
+  bumpMap: steelMaps.bump, bumpScale: 0.0022, envMapIntensity: 1.15, side: THREE.DoubleSide });
+const matInner = new THREE.MeshPhysicalMaterial({
+  color: 0x686e76, metalness: 0.92, roughness: 1.0, roughnessMap: darkMaps.rough,
+  bumpMap: darkMaps.bump, bumpScale: 0.0022, envMapIntensity: 1.15, side: THREE.DoubleSide });
+const matCut = new THREE.MeshPhysicalMaterial({           // freshly machined cross-section
+  color: 0xb8bdc4, metalness: 1.0, roughness: 0.55, envMapIntensity: 0.9, side: THREE.DoubleSide });
+const matChrome = new THREE.MeshPhysicalMaterial({        // mirror-polished rollers
+  color: 0xeef1f6, metalness: 1.0, roughness: 1.0, roughnessMap: chromeMaps.rough,
+  clearcoat: 0.35, clearcoatRoughness: 0.25, envMapIntensity: 1.5 });
+const matTeeth = new THREE.MeshPhysicalMaterial({ color: 0x6a7078, metalness: 0.95, roughness: 0.38, envMapIntensity: 1.0 });
+const matBolt  = new THREE.MeshPhysicalMaterial({ color: 0x40444b, metalness: 1.0, roughness: 0.42, envMapIntensity: 0.9, flatShading: true });
+const matRubber = new THREE.MeshPhysicalMaterial({
+  color: 0x17181a, metalness: 0.0, roughness: 1.0,
+  roughnessMap: (() => { const c = document.createElement('canvas'); c.width = c.height = 4;
+    const x = c.getContext('2d'); x.fillStyle = '#eaeaea'; x.fillRect(0, 0, 4, 4);
+    const t = new THREE.CanvasTexture(c); return t; })(),
+  bumpMap: rubberBump, bumpScale: 0.0016, sheen: 0.4, sheenRoughness: 0.5, sheenColor: 0x33363b,
+  envMapIntensity: 0.35, side: THREE.DoubleSide });
+const matBrass = new THREE.MeshPhysicalMaterial({ color: 0xc09a4a, metalness: 1.0, roughness: 0.35, envMapIntensity: 1.0 });
+const matPedestal = new THREE.MeshPhysicalMaterial({
+  color: 0x1e2126, metalness: 0.8, roughness: 1.0, roughnessMap: darkMaps.rough,
+  bumpMap: darkMaps.bump, bumpScale: 0.0015, envMapIntensity: 0.3 });
+const matFloor = new THREE.MeshPhysicalMaterial({
+  color: 0xffffff, map: floorTx.map, roughness: 1.0, roughnessMap: floorTx.rough,
+  metalness: 0.0, envMapIntensity: 0.04, specularIntensity: 0.35 });
+
+/* ============================================================
+   PROCEDURAL HIGH-CONTRAST HDR ENVIRONMENT (studio softboxes)
+   ============================================================ */
+function makeEnvironment() {
+  const s = new THREE.Scene();
+  const panel = (w, h, rgb, pos) => {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2]) }));
+    m.position.set(pos[0], pos[1], pos[2]); m.lookAt(0, 0, 0); s.add(m);
+  };
+  panel(5.0, 3.0, [7.0, 6.1, 4.9], [-4, 4.2, 3.2]);    // warm key softbox
+  panel(0.8, 7.0, [2.6, 4.6, 10.0], [5.2, 1.4, -4.2]); // cool rim strip
+  panel(9.0, 0.45, [9, 9, 9],  [0, 6, 0.01]);          // long overhead strip — glints on rollers
+  panel(9.0, 0.35, [6, 6.2, 7], [0, 5.4, -2.2]);       // second overhead strip
+  panel(6.0, 6.0, [0.35, 0.36, 0.42], [0, -5, 0]);     // floor bounce
+  panel(4.0, 2.0, [1.1, 1.2, 1.5], [-2, 0.6, -5]);     // cool back fill
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const env = pmrem.fromScene(s, 0.025).texture;       // slight blur, keeps contrast
+  pmrem.dispose();
+  return env;
+}
+scene.environment = makeEnvironment();
+
+/* ============================================================
+   GEOMETRY HELPERS — profile sweep (revolve) + ear-clip caps
+   ============================================================ */
+function pointInTri(px, py, a, b, c) {
+  const d1 = (b.x - a.x) * (py - a.y) - (b.y - a.y) * (px - a.x);
+  const d2 = (c.x - b.x) * (py - b.y) - (c.y - b.y) * (px - b.x);
+  const d3 = (a.x - c.x) * (py - c.y) - (a.y - c.y) * (px - c.x);
+  const hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+  const hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+  return !(hasNeg && hasPos);
+}
+function earClip(pts) {   // pts: [{x,y}] closed simple polygon → triangle indices
+  const n = pts.length; let idx = [...Array(n).keys()];
+  let area = 0;
+  for (let i = 0; i < n; i++) { const p = pts[i], q = pts[(i + 1) % n]; area += p.x * q.y - q.x * p.y; }
+  if (area < 0) idx.reverse();
+  const P = i => pts[idx[i]];
+  const tris = []; let guard = 0;
+  while (idx.length > 3 && guard++ < 4000) {
+    let clipped = false;
+    for (let i = 0; i < idx.length; i++) {
+      const i0 = (i + idx.length - 1) % idx.length, i2 = (i + 1) % idx.length;
+      const a = P(i0), b = P(i), c = P(i2);
+      if ((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) <= 0) continue;  // reflex
+      let inside = false;
+      for (const j of idx) {
+        const p = pts[j];
+        if (p === a || p === b || p === c) continue;
+        if (pointInTri(p.x, p.y, a, b, c)) { inside = true; break; }
+      }
+      if (inside) continue;
+      tris.push(idx[i0], idx[i], idx[i2]); idx.splice(i, 1); clipped = true; break;
+    }
+    if (!clipped) break;
+  }
+  if (idx.length === 3) tris.push(idx[0], idx[1], idx[2]);
+  else if (!tris.length) for (let i = 1; i < idx.length - 1; i++) tris.push(idx[0], idx[i], idx[i + 1]);
+  return tris;
+}
+
+// Revolve a closed (r,y) profile around Y between phiStart..phiStart+phiLength.
+function sweepGeometry(profile, phiStart, phiLength, baseSegments) {
+  const segs = Math.max(12, Math.round(baseSegments * phiLength / TAU));
+  const n = profile.length;
+  const vlen = [0]; let total = 0;
+  for (let k = 1; k <= n; k++) {
+    const a = profile[k - 1], b = profile[k % n];
+    total += Math.hypot(b[0] - a[0], b[1] - a[1]); vlen.push(total);
+  }
+  const pos = [], uv = [], idx = [];
+  for (let k = 0; k < n; k++) {
+    const a = profile[k], b = profile[(k + 1) % n], base = pos.length / 3;
+    for (let j = 0; j <= segs; j++) {
+      const phi = phiStart + phiLength * j / segs, c = Math.cos(phi), s = Math.sin(phi);
+      pos.push(a[0] * c, a[1], a[0] * s); uv.push(phi / TAU, vlen[k] / total);
+      pos.push(b[0] * c, b[1], b[0] * s); uv.push(phi / TAU, vlen[k + 1] / total);
+    }
+    for (let j = 0; j < segs; j++) {
+      const o = base + j * 2;
+      idx.push(o, o + 1, o + 2, o + 1, o + 3, o + 2);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+
+// Both flat cut-faces of a partial revolve, merged into one geometry.
+function capGeometry(profile, tris, phiStart, phiLength) {
+  const pos = [], uv = [], idx = [];
+  for (const phi of [phiStart, phiStart + phiLength]) {
+    const c = Math.cos(phi), s = Math.sin(phi), base = pos.length / 3;
+    for (const p of profile) { pos.push(p[0] * c, p[1], p[0] * s); uv.push(p[0] * 2.2, p[1] * 2.2); }
+    for (const t of tris) idx.push(base + t[0], base + t[1], base + t[2]);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+
+// A swept part that can open a world-fixed wedge: surface mesh + cut-face mesh.
+function makeSweptPart(profile, baseSegments, matSurface, matCut) {
+  const group = new THREE.Group();
+  const surface = new THREE.Mesh(undefined, matSurface);
+  const cut = new THREE.Mesh(undefined, matCut);
+  surface.castShadow = surface.receiveShadow = true;
+  surface.castShadow = true; cut.castShadow = cut.receiveShadow = true;
+  group.add(surface, cut);
+  const capTris = earClip(profile.map(p => ({ x: p[0], y: p[1] })));
+  let cur = -1;
+  const part = {
+    group,
+    setWedge(w) {
+      if (Math.abs(w - cur) < 1e-6) return;
+      cur = w;
+      if (surface.geometry) surface.geometry.dispose();
+      if (cut.geometry) cut.geometry.dispose();
+      if (w <= 1e-3) {
+        surface.geometry = sweepGeometry(profile, 0, TAU, baseSegments);
+        cut.geometry = new THREE.BufferGeometry(); cut.visible = false;
+      } else {
+        const start = WEDGE_CENTER + w / 2, len = TAU - w;
+        surface.geometry = sweepGeometry(profile, start, len, baseSegments);
+        cut.geometry = capGeometry(profile, capTris, WEDGE_CENTER - w / 2, w);
+        cut.visible = true;
+      }
+    },
+  };
+  part.setWedge(0);
+  return part;
+}
+
+/* ============================================================
+   RING PROFILES  (r, y) closed loops
+   ============================================================ */
+const profOuter = [   // C-section with chamfered corners, two axial races + radial bore
+  [R_LIMB, 0.200], [0.775, 0.200], [R_OUTER, 0.195],           // top face → chamfer
+  [R_OUTER, -0.195], [0.775, -0.200], [R_LIMB, -0.200],        // outer wall → chamfer → bottom face
+  [R_LIMB, -0.155], [R_BORE, -0.155],                          // lower limb edge → lower axial race
+  [R_BORE, 0.155],                                             // bore = radial race
+  [R_LIMB, 0.155],                                             // upper axial race → close
+];
+const profInner = [   // block with outboard flares + radial raceway groove
+  [R_IN_FACE, 0.075], [R_IN_TIP, 0.075],
+  [R_IN_TIP, 0.042], [R_IN_GRV, 0.042],
+  [R_IN_GRV, -0.042], [R_IN_TIP, -0.042],
+  [R_IN_TIP, -0.075], [R_IN_FACE, -0.075],
+];
+const profSealTop = [
+  [0.660, 0.086], [0.680, 0.086], [0.680, 0.148],
+  [0.660, 0.148], [0.652, 0.130], [0.657, 0.115], [0.651, 0.100],
+];
+const profSealBot = profSealTop.map(p => [p[0], -p[1]]).reverse();
+
+/* ============================================================
+   BUILD PARTS
+   ============================================================ */
+const SEGS = 360;
+
+const outerPart  = makeSweptPart(profOuter, SEGS, matOuter, matCut);
+const innerPart  = makeSweptPart(profInner, SEGS, matInner, matCut);
+const sealTop    = makeSweptPart(profSealTop, SEGS, matRubber, matRubber);
+const sealBot    = makeSweptPart(profSealBot, SEGS, matRubber, matRubber);
+scene.add(outerPart.group, sealTop.group, sealBot.group);
+
+const rotor = new THREE.Group();       // inner ring rotates; outer ring is fixed
+rotor.add(innerPart.group);
+scene.add(rotor);
+
+// --- gear teeth (external spur gear on outer ring, chamfered via bevel) ---
+function buildToothGeometry() {
+  const sh = new THREE.Shape();
+  sh.moveTo(0, -0.017); sh.lineTo(0.034, -0.012); sh.lineTo(0.034, 0.012); sh.lineTo(0, 0.017); sh.closePath();
+  const g = new THREE.ExtrudeGeometry(sh, {
+    depth: 0.050, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.004, bevelSegments: 2, steps: 1,
+  });
+  g.translate(0, 0, -0.025);
+  g.rotateX(Math.PI / 2);              // extrusion axis → world Y (axial)
+  return g;
+}
+const teeth = new THREE.InstancedMesh(buildToothGeometry(), matTeeth, N_TEETH);
+teeth.castShadow = true; scene.add(teeth);
+
+// --- hex bolt heads + washers, one instanced mesh per ring ---
+function buildBoltGeometry() {
+  const hex = new THREE.CylinderGeometry(0.026, 0.026, 0.018, 6);
+  const washer = new THREE.CylinderGeometry(0.036, 0.036, 0.005, 24);
+  washer.translate(0, -0.010, 0);
+  const g = BufferGeometryUtils_merge([hex, washer]);
+  return g;
+}
+function BufferGeometryUtils_merge(geos) {
+  // tiny local merge (non-indexed) to avoid extra import churn
+  const pos = [], nor = [], uv = [];
+  for (const g0 of geos) {
+    const g = g0.index ? g0.toNonIndexed() : g0;
+    const p = g.getAttribute('position'), n = g.getAttribute('normal'), u = g.getAttribute('uv');
+    for (let i = 0; i < p.count; i++) {
+      pos.push(p.getX(i), p.getY(i), p.getZ(i));
+      nor.push(n.getX(i), n.getY(i), n.getZ(i));
+      uv.push(u ? u.getX(i) : 0, u ? u.getY(i) : 0);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  return g;
+}
+const outerBolts = new THREE.InstancedMesh(buildBoltGeometry(), matBolt, OB_N);
+outerBolts.castShadow = true; scene.add(outerBolts);
+const innerBolts = new THREE.InstancedMesh(buildBoltGeometry(), matBolt, IB_N);
+innerBolts.castShadow = true; rotor.add(innerBolts);   // rotate with inner ring
+
+// --- grease nipples (brass) on outer ring top face ---
+const nipples = [];
+{
+  const body = new THREE.CylinderGeometry(0.006, 0.008, 0.030, 12);
+  const tip = new THREE.SphereGeometry(0.007, 12, 8); tip.translate(0, 0.017, 0);
+  const g = BufferGeometryUtils_merge([body, tip]);
+  for (const a of [0.42, 1.99, 3.56, 5.13]) {   // avoid bolt positions
+    const m = new THREE.Mesh(g, matBrass);
+    m.position.set(0.60 * Math.cos(a), 0.215, 0.60 * Math.sin(a));        // body base flush on top face
+    m.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -a)
+      .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -0.9));
+    m.castShadow = true;
+    scene.add(m); nipples.push({ mesh: m, angle: a });
+  }
+}
+
+// --- rollers (three rows, instanced chrome) ---
+function makeRollers(n, rr, len, segs) {
+  const g = len ? new THREE.CylinderGeometry(rr, rr, len, segs) : new THREE.CylinderGeometry(rr, rr, 0.072, segs);
+  const m = new THREE.InstancedMesh(g, matChrome, n);
+  m.castShadow = m.receiveShadow = true;
+  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  scene.add(m);
+  return m;
+}
+const axialTop    = makeRollers(AX_N, AX_RR, AX_H, 48);
+const axialBottom = makeRollers(AX_N, AX_RR, AX_H, 48);
+const radialRow   = makeRollers(RD_N, RD_RR, RD_L, 40);
+
+// --- pedestal + floor ---
+{
+  const col = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.39, 1.10, 64), matPedestal);
+  col.position.y = -0.83;                       // top at -0.28
+  const flange = new THREE.Mesh(new THREE.CylinderGeometry(0.60, 0.63, 0.08, 64), matPedestal);
+  flange.position.y = -0.24;                    // top at -0.20 = outer ring bottom face
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(10, 72), matFloor);
+  floor.rotation.x = -Math.PI / 2; floor.position.y = -1.38;
+  col.castShadow = col.receiveShadow = flange.castShadow = flange.receiveShadow = true;
+  floor.receiveShadow = true;
+  scene.add(col, flange, floor);
+}
+
+/* ============================================================
+   LIGHTING — three-point studio, physical units
+   ============================================================ */
+RectAreaLightUniformsLib.init();
+
+const keyLight = new THREE.SpotLight(0xffe2c2, params.keyIntensity, 0, 0.55, 0.6, 2);
+keyLight.position.set(3.2, 4.6, 2.4);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.near = 1; keyLight.shadow.camera.far = 14;
+keyLight.shadow.bias = -0.0002; keyLight.shadow.normalBias = 0.02; keyLight.shadow.radius = 4;
+scene.add(keyLight, keyLight.target);
+
+const rimLight = new THREE.DirectionalLight(0x9cc2ff, params.rimIntensity);
+rimLight.position.set(-3.5, 2.2, -3.8);
+scene.add(rimLight);
+
+const fillLight = new THREE.RectAreaLight(0xbfd4e6, params.fillIntensity, 2, 2);
+fillLight.position.set(-2.6, 2.2, 2.2);
+fillLight.lookAt(0, 0, 0);
+scene.add(fillLight);
+
+const hemiLight = new THREE.HemisphereLight(0x3a4148, 0x0c0d0f, 0.15);
+scene.add(hemiLight);
+
+// probe kill-switches: ?l=k|r|f|h|e (key/rim/fill/hemi/environment)
+{
+  const KILL = Q.get('l') || '';
+  if (KILL.includes('k')) keyLight.intensity = 0;
+  if (KILL.includes('r')) rimLight.intensity = 0;
+  if (KILL.includes('f')) fillLight.intensity = 0;
+  if (KILL.includes('h')) hemiLight.intensity = 0;
+  if (KILL.includes('e')) scene.environment = null;
+}
+
+/* ============================================================
+   POST-PROCESSING — SSAO → Bloom → Bokeh DoF → Output → FXAA
+   ============================================================ */
+const composer = new EffectComposer(renderer);
+composer.setPixelRatio(PR);
+composer.setSize(innerWidth, innerHeight);
+
+const renderPass = new RenderPass(scene, camera);   // feeds beauty into readBuffer (SSAOPass multiplies AO onto it)
+composer.addPass(renderPass);
+
+const ssaoPass = new SSAOPass(scene, camera, innerWidth, innerHeight);
+if (Q.has('k')) params.ssaoRadius = parseFloat(Q.get('k'));
+if (Q.has('m')) params.ssaoMaxDist = parseFloat(Q.get('m'));
+if (Q.has('n')) var ssaoMinTmp = parseFloat(Q.get('n'));
+ssaoPass.kernelRadius = params.ssaoRadius;
+ssaoPass.minDistance = (typeof ssaoMinTmp === 'number') ? ssaoMinTmp : 0.0008;
+ssaoPass.maxDistance = params.ssaoMaxDist;
+console.log('SSAO PARAMS', ssaoPass.kernelRadius, ssaoPass.minDistance, ssaoPass.maxDistance);
+composer.addPass(ssaoPass);
+
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), params.bloomStrength, params.bloomRadius, params.bloomThreshold);
+composer.addPass(bloomPass);
+
+const bokehPass = new BokehPass(scene, camera, { focus: params.dofFocus, aperture: params.dofAperture, maxblur: params.dofMaxBlur });
+if (bokehPass.materialDepth) bokehPass.materialDepth.side = THREE.DoubleSide;
+composer.addPass(bokehPass);
+
+const outputPass = new OutputPass();
+composer.addPass(outputPass);
+
+const fxaaPass = new ShaderPass(FXAAShader);
+fxaaPass.material.uniforms['resolution'].value.set(1 / (innerWidth * PR), 1 / (innerHeight * PR));
+composer.addPass(fxaaPass);
+
+function setSsaoEnabled(on) { ssaoPass.enabled = on; }
+setSsaoEnabled(params.ssao && !PROBE_NOSSAO);
+
+/* ============================================================
+   CUTAWAY + INSTANCE PLACEMENT
+   ============================================================ */
+const dummy = new THREE.Object3D();
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+const Z_AXIS = new THREE.Vector3(0, 0, 1);
+const qTmp = new THREE.Quaternion();
+let currentWedge = 0;
+let rebuildDirty = true;
+
+function angDiff(a, b) {
+  let d = (a - b) % TAU;
+  if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU;
+  return d;
+}
+function inWedge(a) { return Math.abs(angDiff(a, WEDGE_CENTER)) < currentWedge / 2 + 0.015; }
+
+function rebuildCutaway() {
+  const w = params.reveal * MAX_WEDGE;
+  currentWedge = w;
+  outerPart.setWedge(w); sealTop.setWedge(w); sealBot.setWedge(w);
+  // inner ring stays whole — it is the rotating part; cut is world-fixed on the outer ring
+
+  dummy.scale.setScalar(1);
+  for (let i = 0; i < N_TEETH; i++) {
+    const a = i / N_TEETH * TAU;
+    dummy.position.set(TOOTH_ROOT * Math.cos(a), 0, TOOTH_ROOT * Math.sin(a));
+    dummy.quaternion.setFromAxisAngle(Y_AXIS, -a);
+    dummy.scale.setScalar(inWedge(a) ? 0.0001 : 1);
+    dummy.updateMatrix();
+    teeth.setMatrixAt(i, dummy.matrix);
+  }
+  teeth.instanceMatrix.needsUpdate = true;
+
+  for (let i = 0; i < OB_N; i++) {
+    const a = i / OB_N * TAU;
+    dummy.position.set(OB_R * Math.cos(a), 0.2125, OB_R * Math.sin(a));   // washer rests on top face y=0.20
+    dummy.quaternion.identity();
+    dummy.scale.setScalar(inWedge(a) ? 0.0001 : 1);
+    dummy.updateMatrix();
+    outerBolts.setMatrixAt(i, dummy.matrix);
+  }
+  outerBolts.instanceMatrix.needsUpdate = true;
+
+  for (const n of nipples) n.mesh.visible = !inWedge(n.angle);
+
+  for (let i = 0; i < IB_N; i++) {   // static local matrices; rotor carries them
+    const a = i / IB_N * TAU;
+    dummy.position.set(IB_R * Math.cos(a), 0.0875, IB_R * Math.sin(a));   // washer rests on inner face y=0.075
+    dummy.quaternion.identity();
+    dummy.scale.setScalar(1);
+    dummy.updateMatrix();
+    innerBolts.setMatrixAt(i, dummy.matrix);
+  }
+  innerBolts.instanceMatrix.needsUpdate = true;
+}
+
+// Radial rollers keep a fixed local shape; per-frame orientation depends on world angle.
+const radialQuats = [];
+for (let i = 0; i < RD_N; i++) {
+  radialQuats.push(new THREE.Quaternion().setFromAxisAngle(Z_AXIS, Math.PI / 2)); // cylinder axis → +X
+}
+const ZERO_SCALE = 0.0001;
+
+function updateRollers(rotorAngle) {
+  const spin = rotorAngle;
+  for (let i = 0; i < AX_N; i++) {
+    const base = i / AX_N * TAU;
+    for (const [mesh, y, off] of [[axialTop, AX_Y, 0], [axialBottom, -AX_Y, Math.PI / AX_N]]) {
+      const a = base + off + spin;
+      const hide = inWedge(a);
+      dummy.position.set(AX_R * Math.cos(a), y, AX_R * Math.sin(a));
+      dummy.quaternion.identity();
+      dummy.scale.setScalar(hide ? ZERO_SCALE : 1);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    }
+  }
+  axialTop.instanceMatrix.needsUpdate = true;
+  axialBottom.instanceMatrix.needsUpdate = true;
+
+  for (let i = 0; i < RD_N; i++) {
+    const a = i / RD_N * TAU + spin;
+    const hide = inWedge(a);
+    dummy.position.set(RD_R * Math.cos(a), 0, RD_R * Math.sin(a));
+    dummy.quaternion.setFromAxisAngle(Y_AXIS, -a).multiply(radialQuats[i]);
+    dummy.scale.setScalar(hide ? ZERO_SCALE : 1);
+    dummy.updateMatrix();
+    radialRow.setMatrixAt(i, dummy.matrix);
+  }
+  radialRow.instanceMatrix.needsUpdate = true;
+}
+
+/* ============================================================
+   lil-gui CONTROL PANEL
+   ============================================================ */
+const gui = new GUI({ title: 'SLEWING BEARING — CONTROL' });
+
+const fAnim = gui.addFolder('Animation');
+fAnim.add(params, 'rotationSpeed', 0, 2, 0.01).name('Rotation speed');
+fAnim.add(params, 'autoOrbit').name('Auto orbit').onChange(v => controls.autoRotate = v);
+
+const fCut = gui.addFolder('Cutaway');
+fCut.add(params, 'reveal', 0, 1, 0.001).name('Cutaway reveal').onChange(() => rebuildDirty = true);
+
+const fLight = gui.addFolder('Lighting');
+fLight.add(params, 'keyIntensity', 0, 900, 1).name('Key intensity').onChange(v => keyLight.intensity = v);
+fLight.addColor(params, 'keyColor').name('Key color').onChange(v => keyLight.color.set(v));
+fLight.add(params, 'rimIntensity', 0, 8, 0.05).name('Rim intensity').onChange(v => rimLight.intensity = v);
+fLight.addColor(params, 'rimColor').name('Rim color').onChange(v => rimLight.color.set(v));
+fLight.add(params, 'fillIntensity', 0, 10, 0.05).name('Fill intensity').onChange(v => fillLight.intensity = v);
+fLight.add(params, 'exposure', 0.4, 2.4, 0.01).name('Exposure').onChange(v => renderer.toneMappingExposure = v);
+
+const fPost = gui.addFolder('Post-Processing');
+fPost.add(params, 'bloomStrength', 0, 1.5, 0.01).name('Bloom strength').onChange(v => bloomPass.strength = v);
+fPost.add(params, 'bloomThreshold', 0, 1, 0.01).name('Bloom threshold').onChange(v => {
+  if (bloomPass.highPassUniforms) bloomPass.highPassUniforms['luminosityThreshold'].value = v;   // works across three versions
+  bloomPass.threshold = v;
+});
+fPost.add(params, 'bloomRadius', 0, 1, 0.01).name('Bloom radius').onChange(v => bloomPass.radius = v);
+fPost.add(params, 'dofEnabled').name('Depth of field').onChange(v => bokehPass.enabled = v);
+const focusCtrl = fPost.add(params, 'dofFocus', 1.2, 6, 0.01).name('DoF focus distance').listen()
+  .onChange(v => bokehPass.uniforms['focus'].value = v);
+fPost.add(params, 'dofAperture', 0, 0.1, 0.001).name('DoF aperture').onChange(v => bokehPass.uniforms['aperture'].value = v);
+fPost.add(params, 'dofMaxBlur', 0, 0.03, 0.0005).name('DoF max blur').onChange(v => bokehPass.uniforms['maxblur'].value = v);
+fPost.add(params, 'ssao').name('SSAO').onChange(setSsaoEnabled);
+fPost.add(params, 'ssaoRadius', 0.05, 1.0, 0.01).name('SSAO radius').onChange(v => ssaoPass.kernelRadius = v);
+fPost.add(params, 'ssaoMaxDist', 0.005, 0.2, 0.005).name('SSAO falloff').onChange(v => ssaoPass.maxDistance = v);
+fPost.add(params, 'fxaa').name('FXAA anti-alias').onChange(v => fxaaPass.enabled = v);
+fPost.add({ focusRollers() { focusOnRollers(); } }, 'focusRollers').name('⦿ Focus on rollers');
+fLight.close(); fPost.close(); fCut.close();
+
+function focusOnRollers() {
+  const p = new THREE.Vector3(AX_R * Math.cos(WEDGE_CENTER), AX_Y, AX_R * Math.sin(WEDGE_CENTER));
+  params.dofFocus = camera.position.distanceTo(p);
+  bokehPass.uniforms['focus'].value = params.dofFocus;
+}
+focusOnRollers();   // start focused strictly on the exposed rollers
+
+/* ============================================================
+   RESIZE / LOOP
+   ============================================================ */
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+  fxaaPass.material.uniforms['resolution'].value.set(1 / (innerWidth * PR), 1 / (innerHeight * PR));
+});
+
+const clock = new THREE.Clock();
+const readout = document.getElementById('readout');
+let rotorAngle = 0, hudT = 0, frameCount = 0;
+
+renderer.setAnimationLoop(() => {
+  if (CINE) return;                     // cine mode renders via __cineFrame below
+  const dt = Math.min(clock.getDelta(), 0.05);
+  rotorAngle += params.rotationSpeed * 0.6 * dt;
+  rotor.rotation.y = rotorAngle;
+  updateRollers(rotorAngle);
+  if (rebuildDirty) { rebuildDirty = false; rebuildCutaway(); }
+  controls.update();
+  if (PROBE_DIRECT) renderer.render(scene, camera); else composer.render();
+  frameCount++;
+  if (SHOT) {
+    const gl = renderer.getContext(), px = new Uint8Array(4), w = innerWidth, h = innerHeight, grid = [];
+    for (const [fx, fy] of [[0.5,0.5],[0.35,0.4],[0.65,0.4],[0.35,0.6],[0.65,0.6],[0.5,0.32],[0.5,0.68],[0.25,0.5],[0.75,0.5]]) {
+      gl.readPixels((w * fx) | 0, (h * fy) | 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      grid.push(px[0] + ',' + px[1] + ',' + px[2]);
+    }
+    console.log('FRAME', frameCount, '|', grid.join(' '));
+    if (frameCount >= 3) {
+      console.log('SHOT DONE');
+      try {   // headless compositor skips WebGL layers — copy the frame into DOM for capture
+        const img = new Image();
+        img.src = renderer.domElement.toDataURL('image/png');
+        img.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;z-index:1;pointer-events:none;';
+        document.body.appendChild(img);
+      } catch (e) { console.log('CAPTURE FAIL', e.message); }
+      renderer.setAnimationLoop(null);
+    }
+  }
+
+  hudT += dt;
+  if (hudT > 0.2) {
+    hudT = 0;
+    const rpm = (params.rotationSpeed * 0.6 * 60 / TAU).toFixed(1);
+    readout.textContent = `SLEW 01  ·  CUTAWAY ${Math.round(params.reveal * 100)}%  ·  ${rpm} RPM`;
+  }
+});
+
+rebuildCutaway();
+
+/* ============================================================
+   FULL INTERACTIVE DEMO CAPTURE (#cine) — deterministic offline
+   render of the whole app: camera choreography AND the control
+   panel being "used" (lil-gui replica, HUD, hint, cursor — all
+   drawn into a screen-space overlay so they're captured with the
+   frame). Frame i is a pure function of i.
+   ============================================================ */
+if (CINE) {
+  renderer.setAnimationLoop(null);
+  controls.enabled = false;
+
+  const CINE_FPS = MOBILE ? 30 : 60, CINE_DUR = 66;
+  const S = MOBILE ? 1.7 : 1;                       // overlay UI scale (design space stays 1920×1080)
+  const V3 = (x, y, z) => MOBILE                    // portrait crop: pull the camera back
+    ? new THREE.Vector3(x * 1.32, y * 1.12, z * 1.32)
+    : new THREE.Vector3(x, y, z);
+
+  /* ---------- screen-space overlay (DOM chrome can't be canvas-captured) ---------- */
+  const OV_W = innerWidth, OV_H = innerHeight;
+  const ovCan = document.createElement('canvas');
+  ovCan.width = OV_W * PR; ovCan.height = OV_H * PR;   // native device res — text stays crisp at 4K
+  const o = ovCan.getContext('2d');
+  const ovTex = new THREE.CanvasTexture(ovCan);
+  ovTex.colorSpace = THREE.SRGBColorSpace;
+  ovTex.minFilter = ovTex.magFilter = THREE.LinearFilter;
+  const ovScene = new THREE.Scene();
+  const ovCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  ovScene.add(new THREE.Mesh(
+    new THREE.PlaneGeometry(2, 2),
+    new THREE.MeshBasicMaterial({ map: ovTex, transparent: true, toneMapped: false, depthTest: false, depthWrite: false })));
+
+  const MONO = 'Menlo, monospace';
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const ss = u => { u = clamp(u, 0, 1); return u * u * (3 - 2 * u); };
+
+  const UI = {
+    panelX: 1920 - 245 - 15, panelW: 245,
+    titleBg: '#17191d', folderBg: '#1a1d21', rowBg: '#131519', fieldBg: '#26292e',
+    blue: '#3292e0', text: '#cdd3da', white: '#f2f4f6',
+    dim: '#8b929c', dim2: '#5d666f', sep: 'rgba(0,0,0,0.45)',
+  };
+  const SL_X = 112, SL_W = 78, NUM_X = 194, NUM_W = 44;   // control columns inside the panel
+
+  /* ---------- panel definition (mirrors the real lil-gui build) ---------- */
+  let liveFocus = 2.6, curBloomT = 0.92;
+  const PANEL = [
+    { name: 'Animation', openAt: -1, rows: [
+      { k: 'rot',    type: 'num',   label: 'Rotation speed',  min: 0, max: 2, dec: 2, val: () => params.rotationSpeed, drag: [17.2, 22.8] },
+      { k: 'orbit',  type: 'check', label: 'Auto orbit',      val: () => true },
+    ]},
+    { name: 'Cutaway', openAt: 3.2, rows: [
+      { k: 'reveal', type: 'num',   label: 'Cutaway reveal',  min: 0, max: 1, dec: 3, val: () => params.reveal, drag: [8.2, 16.4], drag2: [57.6, 59.8] },
+    ]},
+    { name: 'Lighting', openAt: 4.0, rows: [
+      { k: 'keyI',   type: 'num',   label: 'Key intensity',   min: 0, max: 900, dec: 0, val: () => keyLight.intensity, drag: [50.8, 53.5] },
+      { k: 'keyC',   type: 'color', label: 'Key color',       val: () => '#' + keyLight.color.getHexString() },
+      { k: 'rimI',   type: 'num',   label: 'Rim intensity',   min: 0, max: 8, dec: 2, val: () => rimLight.intensity },
+      { k: 'rimC',   type: 'color', label: 'Rim color',       val: () => '#' + rimLight.color.getHexString() },
+      { k: 'fillI',  type: 'num',   label: 'Fill intensity',  min: 0, max: 10, dec: 2, val: () => fillLight.intensity },
+      { k: 'expo',   type: 'num',   label: 'Exposure',        min: 0.4, max: 2.4, dec: 2, val: () => renderer.toneMappingExposure, drag: [54.0, 56.4] },
+    ]},
+    { name: 'Post-Processing', openAt: 4.8, rows: [
+      { k: 'bloomS', type: 'num',   label: 'Bloom strength',  min: 0, max: 1.5, dec: 2, val: () => bloomPass.strength },
+      { k: 'bloomT', type: 'num',   label: 'Bloom threshold', min: 0, max: 1, dec: 2, val: () => curBloomT, drag: [36.8, 41.4] },
+      { k: 'bloomR', type: 'num',   label: 'Bloom radius',    min: 0, max: 1, dec: 2, val: () => bloomPass.radius },
+      { k: 'dofOn',  type: 'check', label: 'Depth of field',  val: () => true },
+      { k: 'dofF',   type: 'num',   label: 'DoF focus distance', min: 1.2, max: 6, dec: 2, val: () => liveFocus, drag: [27.4, 31.5] },
+      { k: 'dofA',   type: 'num',   label: 'DoF aperture',    min: 0, max: 0.1, dec: 3, val: () => bokehPass.uniforms['aperture'].value },
+      { k: 'dofMB',  type: 'num',   label: 'DoF max blur',    min: 0, max: 0.03, dec: 4, val: () => bokehPass.uniforms['maxblur'].value },
+      { k: 'ssao',   type: 'check', label: 'SSAO',            val: () => ssaoPass.enabled },
+      { k: 'ssaoR',  type: 'num',   label: 'SSAO radius',     min: 0.05, max: 1, dec: 2, val: () => ssaoPass.kernelRadius },
+      { k: 'ssaoM',  type: 'num',   label: 'SSAO falloff',    min: 0.005, max: 0.2, dec: 3, val: () => ssaoPass.maxDistance },
+      { k: 'fxaa',   type: 'check', label: 'FXAA anti-alias', val: () => fxaaPass.enabled },
+    ]},
+  ];
+  const PT = {}, FOLDER_PT = {};   // per-frame hit targets for the cursor
+
+  /* ---------- demo choreography ---------- */
+  const camCurve = new THREE.CatmullRomCurve3([
+    V3(1.50, 0.90, 3.10),   // establishing
+    V3(1.05, 0.80, 2.85),   // slow orbit while folders open
+    V3(0.78, 0.68, 2.95),   // reveal drag demo backdrop
+    V3(1.02, 0.75, 3.10),   // rotation-speed demo backdrop
+    V3(0.42, 0.34, 1.42),   // dolly into the wedge
+    V3(0.16, 0.32, 1.30),   // macro — rack-focus + zoom demo
+    V3(-0.20, 0.30, 1.50),  // drift across the rows (bloom/SSAO demo)
+    V3(-0.60, 0.40, 1.85),  // pull back
+    V3(-0.20, 0.80, 2.65),  // medium for lighting demo
+    V3(0.90, 0.90, 2.95),   // hero
+    V3(1.32, 1.00, 2.80),   // finale orbit
+    V3(1.15, 0.85, 2.95),   // settle home
+  ], false, 'centripetal', 0.5);
+  const tgtCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0.00, 0.02, 0.00),
+    new THREE.Vector3(0.06, 0.00, 0.22),
+    new THREE.Vector3(0.14, 0.00, 0.42),
+    new THREE.Vector3(0.05, 0.01, 0.20),
+    new THREE.Vector3(0.20, 0.02, 0.58),
+    new THREE.Vector3(0.13, 0.00, 0.59),
+    new THREE.Vector3(0.06, 0.02, 0.61),
+    new THREE.Vector3(-0.05, 0.02, 0.55),
+    new THREE.Vector3(0.00, 0.00, 0.15),
+    new THREE.Vector3(0.03, 0.02, 0.15),
+    new THREE.Vector3(0.00, 0.03, 0.05),
+    new THREE.Vector3(0.00, 0.05, 0.00),
+  ], false, 'centripetal', 0.5);
+
+  function kv(keys, t) {
+    if (t <= keys[0][0]) return keys[0][1];
+    for (let i = 1; i < keys.length; i++) {
+      if (t <= keys[i][0]) {
+        const t0 = keys[i - 1][0], v0 = keys[i - 1][1], t1 = keys[i][0], v1 = keys[i][1];
+        return v0 + (v1 - v0) * ss((t - t0) / (t1 - t0));
+      }
+    }
+    return keys[keys.length - 1][1];
+  }
+  function hex2rgb(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+  function kvHex(keys, t) {
+    if (t <= keys[0][0]) return keys[0][1];
+    for (let i = 1; i < keys.length; i++) {
+      if (t <= keys[i][0]) {
+        const u = ss((t - keys[i - 1][0]) / (keys[i][0] - keys[i - 1][0]));
+        const a = hex2rgb(keys[i - 1][1]), b = hex2rgb(keys[i][1]);
+        return '#' + [0, 1, 2].map(c => Math.round(a[c] + (b[c] - a[c]) * u).toString(16).padStart(2, '0')).join('');
+      }
+    }
+    return keys[keys.length - 1][1];
+  }
+
+  const fovKeys  = MOBILE
+    ? [[0, 50], [22, 50], [25, 43], [40, 43], [44, 48], [66, 48]]
+    : [[0, 42], [22, 42], [25, 36], [40, 36], [44, 40], [66, 41]];
+  const revK     = [[0, 0.62], [8.2, 0.62], [10.2, 0.04], [11.2, 0.04], [14.6, 0.95], [16.4, 0.62], [57.5, 0.62], [59.8, 0.74], [66, 0.74]];
+  const rotK     = [[0, 0.6], [17.2, 0.6], [19.3, 2.0], [21.0, 2.0], [22.8, 0.85], [66, 0.85]];
+  const dofMulK  = [[0, 1], [27, 1], [29, 4.2], [31.5, 1], [66, 1]];   // rack focus = focus × distance multiplier
+  const apKeys   = [[0, 0.022], [22, 0.022], [25, 0.034], [40, 0.034], [44, 0.022], [66, 0.020]];
+  const ssaoK    = [[0, 1], [40.8, 1], [40.95, 0], [42.95, 0], [43.1, 1], [66, 1]];
+  const keyIK    = [[0, 460], [22, 460], [25, 230], [41, 230], [44, 460], [50.8, 460], [52, 640], [53.5, 460], [66, 460]];
+  const keyColK  = [[0, '#ffe2c2'], [47.5, '#ffe2c2'], [49, '#ffb46a'], [50.5, '#ff8f5e'], [52, '#ffe2c2'], [66, '#ffe2c2']];
+  const rimColK  = [[0, '#9cc2ff'], [53.5, '#9cc2ff'], [55, '#b9d2ff'], [56.5, '#9cc2ff'], [66, '#9cc2ff']];
+  const fillIK   = [[0, 0.9], [6, 0.9], [8, 1.4], [18, 1.4], [20, 0.9], [24, 0.9], [26, 1.8], [41, 1.8], [43, 0.9], [66, 0.9]];
+  const bloomSK  = [[0, 0.32], [36.8, 0.32], [38.8, 0.42], [40, 0.42], [41.4, 0.32], [66, 0.32]];
+  const bloomTK  = [[0, 0.92], [37, 0.92], [38.8, 0.70], [40, 0.70], [41.4, 0.97], [43, 0.92], [57.5, 0.92], [58.5, 1.02], [62, 1.02], [62.5, 0.92], [66, 0.92]];
+  const expoK    = [[0, 1.18], [53.8, 1.18], [55.0, 1.32], [56.4, 1.18], [64.6, 1.18], [CINE_DUR, 0]];
+
+  // rotor angle = time-integral of the (variable) speed curve
+  const N_FR = CINE_FPS * CINE_DUR;
+  const rotorTable = new Float64Array(N_FR + 1);
+  {
+    const dt = 1 / CINE_FPS;
+    for (let i = 1; i <= N_FR; i++)
+      rotorTable[i] = rotorTable[i - 1] + 0.6 * (kv(rotK, (i - 1) * dt) + kv(rotK, i * dt)) / 2 * dt;
+  }
+
+  /* ---------- overlay painters ---------- */
+  function chevron(x, y, open) {
+    o.strokeStyle = UI.text; o.lineWidth = 1.4; o.lineCap = 'round'; o.beginPath();
+    if (open) { o.moveTo(x, y - 2); o.lineTo(x + 4, y + 2); o.lineTo(x + 8, y - 2); }
+    else { o.moveTo(x, y - 4); o.lineTo(x + 4, y); o.lineTo(x, y + 4); }
+    o.stroke();
+  }
+  function drawRow(r, y) {
+    const px = UI.panelX;
+    o.fillStyle = UI.rowBg; o.fillRect(px, y, UI.panelW, 24);
+    o.fillStyle = UI.sep; o.fillRect(px, y + 23.5, UI.panelW, 0.5);
+    o.textBaseline = 'middle'; o.letterSpacing = '0.4px';
+    o.font = '11px ' + MONO; o.fillStyle = UI.text;
+    o.fillText(r.label, px + 8, y + 12.5);
+    o.letterSpacing = '0px';
+    if (r.type === 'num') {
+      const v = r.val(), frac = clamp((v - r.min) / (r.max - r.min), 0, 1);
+      o.fillStyle = UI.fieldBg; o.fillRect(px + SL_X, y + 4, SL_W, 16);
+      o.fillStyle = UI.blue; o.fillRect(px + SL_X + 2 + frac * (SL_W - 4) - 1, y + 4, 2, 16);
+      o.fillStyle = UI.fieldBg; o.fillRect(px + NUM_X, y + 4, NUM_W, 16);
+      o.font = '11px ' + MONO; o.fillStyle = UI.blue; o.textAlign = 'right';
+      o.fillText(v.toFixed(r.dec), px + NUM_X + NUM_W - 6, y + 12.5);
+      o.textAlign = 'left';
+      PT[r.k] = { knobX: px + SL_X + 2 + frac * (SL_W - 4), knobY: y + 12 };
+    } else if (r.type === 'check') {
+      const on = r.val();
+      o.fillStyle = UI.fieldBg; o.fillRect(px + SL_X, y + 5, 14, 14);
+      if (on) {
+        o.strokeStyle = '#e8ebee'; o.lineWidth = 1.6; o.beginPath();
+        o.moveTo(px + SL_X + 3, y + 12); o.lineTo(px + SL_X + 6, y + 15); o.lineTo(px + SL_X + 11, y + 8);
+        o.stroke();
+      }
+      PT[r.k] = { checkX: px + SL_X + 7, checkY: y + 12 };
+    } else if (r.type === 'color') {
+      const hex = r.val();
+      o.fillStyle = hex; o.fillRect(px + SL_X, y + 4, 16, 16);
+      o.strokeStyle = 'rgba(255,255,255,0.18)'; o.strokeRect(px + SL_X + 0.5, y + 4.5, 15, 15);
+      o.font = '11px ' + MONO; o.fillStyle = UI.text;
+      o.fillText(hex, px + SL_X + 22, y + 12.5);
+      PT[r.k] = { swatchX: px + SL_X + 8, swatchY: y + 12 };
+    }
+  }
+  function drawPanel(t) {
+    const px = UI.panelX;
+    o.fillStyle = UI.titleBg; o.fillRect(px, 0, UI.panelW, 24);
+    chevron(px + 10, 12, true);
+    o.textBaseline = 'middle'; o.letterSpacing = '0.6px';
+    o.font = 'bold 11px ' + MONO; o.fillStyle = UI.white;
+    o.fillText('SLEWING BEARING — CONTROL', px + 26, 12.5);
+    o.letterSpacing = '0px';
+    let y = 24;
+    for (const f of PANEL) {
+      const frac = f.openAt < 0 ? 1 : ss((t - f.openAt) / 0.28);
+      const chH = f.rows.length * 24;
+      FOLDER_PT[f.name] = { x: px + 12, y: y + 12 };
+      o.fillStyle = UI.folderBg; o.fillRect(px, y, UI.panelW, 24);
+      o.fillStyle = UI.sep; o.fillRect(px, y + 23.5, UI.panelW, 0.5);
+      chevron(px + 8, y + 12, frac > 0.5);
+      o.textBaseline = 'middle'; o.letterSpacing = '0.5px';
+      o.font = 'bold 11px ' + MONO; o.fillStyle = UI.white;
+      o.fillText(f.name, px + 26, y + 12.5);
+      o.letterSpacing = '0px';
+      if (frac > 0.01) {
+        o.save(); o.beginPath(); o.rect(px, y + 24, UI.panelW, frac * chH + 1); o.clip();
+        f.rows.forEach((r, i) => drawRow(r, y + 24 + i * 24));
+        o.restore();
+      }
+      y += 24 + frac * chH;
+    }
+  }
+  function drawHUD(t) {
+    const bx = 28;
+    o.textBaseline = 'alphabetic';
+    o.letterSpacing = '4.8px';
+    o.font = '600 15px ' + MONO; o.fillStyle = '#dfe3e8';
+    o.fillText('TRIPLE-ROW ROLLER SLEWING BEARING', bx, 1080 - 85);
+    o.letterSpacing = '1.3px';
+    o.font = '11px ' + MONO; o.fillStyle = UI.dim;
+    o.fillText('Ø 1.65 m SWING  ·  2 × AXIAL ROWS + 1 × RADIAL ROW  ·  EXTERNAL GEAR 96T' + (CLEAN ? '' : '  ·  FULLY PROCEDURAL — NO ASSETS'), bx, 1080 - 63);
+    const rpm = (params.rotationSpeed * 0.6 * 60 / TAU).toFixed(1);
+    const ro = `SLEW 01  ·  CUTAWAY ${Math.round(params.reveal * 100)}%  ·  ${rpm} RPM`;
+    o.fillStyle = UI.dim2; o.fillText(ro, bx, 1080 - 27);
+    const w = o.measureText(ro).width;
+    o.fillStyle = 'rgba(255,255,255,0.12)'; o.fillRect(bx, 1080 - 48, w, 1);
+    o.letterSpacing = '0px';
+  }
+  function drawHint() {
+    const lines = ['DRAG — ORBIT', 'SCROLL — ZOOM', 'RIGHT PANEL — CONTROLS'];
+    o.textAlign = 'right'; o.textBaseline = 'alphabetic';
+    o.letterSpacing = '1.4px';
+    o.font = '10px ' + MONO; o.fillStyle = UI.dim2;
+    lines.forEach((s, i) => o.fillText(s, 1920 - 302, 24 + i * 17));
+    o.textAlign = 'left'; o.letterSpacing = '0px';
+  }
+  function drawCursor(t) {
+    const a = ss((t - 2.4) / 0.6) * (1 - ss((t - 61.0) / 1.0));
+    if (a <= 0.01) return;
+    const p = cursorState(t);   // already screen css px
+    if (!p) return;
+    for (const tc of [3.2, 4.0, 4.8, 40.8, 43.0]) {
+      const d = (t - tc) / 0.35;
+      if (d > 0 && d < 1) {
+        o.globalAlpha *= (1 - d);
+        o.strokeStyle = '#ffffff'; o.lineWidth = 1.5 * S;
+        o.beginPath(); o.arc(p[0] + 6 * S, p[1] + 6 * S, (4 + d * 16) * S, 0, TAU); o.stroke();
+        o.globalAlpha /= (1 - d);
+      }
+    }
+    o.save();
+    o.translate(p[0], p[1]); o.scale(1.5 * S, 1.5 * S);
+    o.globalAlpha *= a;
+    o.beginPath();
+    o.moveTo(0, 0); o.lineTo(0, 15.5); o.lineTo(4.2, 12.0); o.lineTo(7.1, 18.4); o.lineTo(9.6, 17.3); o.lineTo(6.7, 11.0); o.lineTo(11.6, 10.8);
+    o.closePath();
+    o.fillStyle = '#ffffff'; o.fill();
+    o.strokeStyle = '#1a1c1f'; o.lineWidth = 0.9; o.stroke();
+    o.restore();
+    o.globalAlpha = 1;
+  }
+  const pt2scr = p => [p[0] * S + OV_W - 1920 * S, p[1] * S];   // panel design space → screen css px
+  function targetXY(seg, t) {
+    if (seg.folder) { const g = FOLDER_PT[seg.folder]; return g ? pt2scr([g.x, g.y]) : null; }
+    const g = PT[seg.key];
+    if (!g) return null;
+    if (seg.kind === 'check') return pt2scr([g.checkX, g.checkY]);
+    if (seg.kind === 'swatch') return pt2scr([g.swatchX, g.swatchY]);
+    return pt2scr([g.knobX, g.knobY]);
+  }
+  const SEGS = [
+    { t0: 2.4, t1: 3.3, folder: 'Cutaway' },
+    { t0: 3.9, t1: 4.3, folder: 'Lighting' },
+    { t0: 4.6, t1: 5.0, folder: 'Post-Processing' },
+    { t0: 6.2, t1: 7.2, key: 'reveal' },
+    { t0: 8.2, t1: 16.4, key: 'reveal', drag: true },
+    { t0: 16.4, t1: 17.2, key: 'rot' },
+    { t0: 17.2, t1: 22.8, key: 'rot', drag: true },
+    { t0: 22.8, t1: 25.0, to: () => [OV_W * 0.30, OV_H * 0.86] },
+    { t0: 26.6, t1: 27.4, key: 'dofF' },
+    { t0: 27.4, t1: 31.5, key: 'dofF', drag: true },
+    { t0: 31.5, t1: 34.0, to: () => [OV_W * 0.30, OV_H * 0.86] },
+    { t0: 36.0, t1: 36.8, key: 'bloomT' },
+    { t0: 36.8, t1: 41.4, key: 'bloomT', drag: true },
+    { t0: 41.4, t1: 42.2, kind: 'check', key: 'ssao' },
+    { t0: 42.2, t1: 44.4, kind: 'check', key: 'ssao', hold: true },
+    { t0: 44.4, t1: 45.4, kind: 'swatch', key: 'keyC' },
+    { t0: 45.4, t1: 50.8, kind: 'swatch', key: 'keyC', hold: true },
+    { t0: 50.8, t1: 51.4, key: 'keyI' },
+    { t0: 51.4, t1: 53.5, key: 'keyI', drag: true },
+    { t0: 53.5, t1: 54.2, key: 'expo' },
+    { t0: 54.2, t1: 56.4, key: 'expo', drag: true },
+    { t0: 56.4, t1: 57.6, to: () => [OV_W * 0.30, OV_H * 0.86] },
+    { t0: 57.6, t1: 59.8, key: 'reveal', drag: true },
+    { t0: 59.8, t1: 61.5, to: () => [OV_W * 0.30, OV_H * 0.86] },
+  ];
+  function cursorState(t) {
+    let cur = [OV_W - 60, 120];
+    for (const seg of SEGS) {
+      const resolved = seg.to ? seg.to(t) : targetXY(seg, t);
+      if (!resolved) continue;
+      if (t < seg.t0) break;
+      if (t >= seg.t1) { cur = resolved; continue; }
+      const u = ss((t - seg.t0) / (seg.t1 - seg.t0));
+      const ease = seg.drag || seg.hold ? 1 : u;
+      return [cur[0] + (resolved[0] - cur[0]) * ease,
+              cur[1] + (resolved[1] - cur[1]) * ease];
+    }
+    return cur;
+  }
+
+  window.__cineMeta = { fps: CINE_FPS, dur: CINE_DUR, frames: N_FR };
+  window.__cineFrame = function (f) {
+    const t = f / CINE_FPS;
+    const u = Math.min(t / CINE_DUR, 1);
+
+    camera.position.copy(camCurve.getPoint(u));
+    const tgt = tgtCurve.getPoint(u);
+    camera.lookAt(tgt);
+    camera.fov = kv(fovKeys, t);
+    camera.updateProjectionMatrix();
+
+    rotorAngle = rotorTable[Math.min(f, N_FR)];
+    rotor.rotation.y = rotorAngle;
+    updateRollers(rotorAngle);
+
+    const rev = kv(revK, t);
+    if (Math.abs(rev - params.reveal) > 1e-6) { params.reveal = rev; rebuildCutaway(); }
+    params.rotationSpeed = kv(rotK, t);
+
+    liveFocus = clamp(camera.position.distanceTo(tgt) * kv(dofMulK, t), 0.4, 6);
+    bokehPass.uniforms['focus'].value = liveFocus;
+    bokehPass.uniforms['aperture'].value = kv(apKeys, t);
+    ssaoPass.enabled = kv(ssaoK, t) > 0.5;
+    keyLight.intensity = kv(keyIK, t);
+    keyLight.color.set(kvHex(keyColK, t));
+    rimLight.color.set(kvHex(rimColK, t));
+    fillLight.intensity = kv(fillIK, t);
+    bloomPass.strength = kv(bloomSK, t);
+    curBloomT = kv(bloomTK, t);
+    bloomPass.threshold = curBloomT;
+    if (bloomPass.highPassUniforms) bloomPass.highPassUniforms['luminosityThreshold'].value = curBloomT;
+    renderer.toneMappingExposure = kv(expoK, t);
+
+    if (PROBE_DIRECT) renderer.render(scene, camera); else composer.render();
+
+    // overlay: panel + HUD + hint + cursor (in-canvas, so it's captured).
+    // Painters are authored in 1920×1080 design space; transforms anchor + scale them.
+    o.setTransform(PR, 0, 0, PR, 0, 0);
+    o.clearRect(0, 0, OV_W, OV_H);
+    o.globalAlpha = ss(t / 1.2) * (1 - ss((t - (CINE_DUR - 1.2)) / 1.2));
+    if (!CLEAN) {
+      o.setTransform(PR * S, 0, 0, PR * S, PR * (OV_W - 1920 * S), 0);          // panel + hint — top-right anchor
+      drawHint();
+      drawPanel(t);
+    }
+    const SH = MOBILE ? 1.25 : S;                                             // HUD: fit the spec line to a narrow screen
+    o.setTransform(PR * SH, 0, 0, PR * SH, 0, PR * (OV_H - 1080 * SH));
+    drawHUD(t);
+    if (!CLEAN) {
+      o.setTransform(PR, 0, 0, PR, 0, 0);                                       // cursor — screen space
+      drawCursor(t);
+    }
+    o.globalAlpha = 1;
+    ovTex.needsUpdate = true;
+    renderer.autoClear = false;
+    renderer.clearDepth();
+    renderer.render(ovScene, ovCam);
+    renderer.autoClear = true;
+
+    return renderer.domElement.toDataURL('image/jpeg', 0.97);
+  };
+}
+
+window.__sceneReady = true;
+}
+</script>
+</body>
+</html>

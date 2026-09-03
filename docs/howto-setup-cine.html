@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Howto Setup — 30s cine — Name→Key→Launch</title>
+<style>
+  html,body{margin:0;background:#08090b;overflow:hidden}
+  canvas{display:block}
+  #pre{position:fixed;left:12px;bottom:10px;color:#6f7a86;font:10px "SF Mono",monospace;letter-spacing:.12em}
+</style>
+<canvas id=c width=1920 height=1080></canvas>
+<div id=pre></div>
+<!-- howto-setup-cine.html — Canvas2D 1920x1080 60fps 1800f deterministic funnel Name→Key→Launch -->
+<script>
+const W=1920,H=1080;
+const FPS=60,DUR=30,FRAMES=FPS*DUR;
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+// W1920 H1080 FPS60 DUR30 FRAMES1800
+const C={
+  bg:'#08090b', panel:'#111214', line:'rgba(255,255,255,0.06)',
+  bone:'#efece5', boneDim:'#c9c6bf', muted:'#8b929c', muted2:'#6f7a86',
+  signal:'#20b8cd', signalHot:'#9df0f8', signalDeep:'#077e93',
+  ok:'#22c55e', yellow:'#f59e0b'
+};
+// seeded xorshift32(fnv1a(PROMPT)>>>0) — deterministic, no wall-clock
+function fnv1a(str){
+  let h=2166136261>>>0;
+  for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); }
+  return h>>>0;
+}
+function xorshift32(n){
+  n^=n<<13; n^=n>>>17; n^=n<<5; return (n>>>0)/4294967296;
+}
+const SEED=fnv1a('solari-chow-setup-30s v1')>>>0;
+function seeded(i){ return xorshift32((SEED + i*0x9e3779b1)>>>0); }
+// spring 420/28/0.9 reveals — deterministic
+function spring01(u){
+  const w0=21.6, zeta=0.72, wd=w0*Math.sqrt(1-zeta*zeta);
+  if(u>=1) return 1;
+  const tt=u*1.4;
+  const env=Math.exp(-zeta*w0*tt);
+  const osc=Math.cos(wd*tt)+(zeta/Math.sqrt(1-zeta*zeta))*Math.sin(wd*tt);
+  return 1 - env*osc;
+}
+function ease(t){ t=Math.max(0,Math.min(1,t)); return t*t*(3-2*t); }
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function slugify(s){
+  let v=s.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/-{2,}/g,'-').replace(/^-+|-+$/g,'');
+  v=v.slice(0,48).replace(/^-+|-+$/g,''); if(!v) return 'my-shop'; return v;
+}
+function bgGradient(){
+  const g=ctx.createRadialGradient(W*0.7,H*0.18,0,W*0.7,H*0.18,900);
+  g.addColorStop(0,'rgba(32,184,205,0.18)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  const g2=ctx.createRadialGradient(W*0.2,H*0.9,0,W*0.2,H*0.9,800);
+  g2.addColorStop(0,'rgba(7,126,147,0.22)'); g2.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g2; ctx.fillRect(0,0,W,H);
+  const lg=ctx.createLinearGradient(0,0,0,H);
+  lg.addColorStop(0,'#0a0b0d'); lg.addColorStop(0.6,'#08090b'); lg.addColorStop(1,'#07080a');
+  ctx.fillStyle=lg; ctx.globalAlpha=0.9; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
+}
+function drawCursor(cx,cy,frame,clicking,alpha){
+  const jx=(xorshift32((frame*9991+SEED)>>>0)-0.5)*2.2;
+  const jy=(xorshift32((frame*104729+SEED+1)>>>0)-0.5)*2.2;
+  const x=cx+jx,y=cy+jy;
+  ctx.save(); ctx.globalAlpha=alpha;
+  ctx.fillStyle='rgba(0,0,0,0.35)';
+  ctx.beginPath(); ctx.moveTo(x+1.2,y+1.2); ctx.lineTo(x+1.2,y+16.7); ctx.lineTo(x+5.4,y+13.2); ctx.lineTo(x+8.3,y+19.8); ctx.lineTo(x+10.8,y+18.6); ctx.lineTo(x+7.9,y+12.2); ctx.lineTo(x+12.8,y+12.0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle=clicking?'#20b8cd':'#ffffff';
+  ctx.strokeStyle='#0a0a0b'; ctx.lineWidth=1.1;
+  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y+15.5); ctx.lineTo(x+4.2,y+12); ctx.lineTo(x+7.1,y+18.4); ctx.lineTo(x+9.6,y+17.3); ctx.lineTo(x+6.7,y+11); ctx.lineTo(x+11.6,y+10.8); ctx.closePath(); ctx.fill(); ctx.stroke();
+  if(clicking){ ctx.strokeStyle='rgba(32,184,205,0.85)'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(x+5.5,y+5.5,9+(frame%10)*0.9,0,Math.PI*2); ctx.stroke(); }
+  ctx.restore();
+}
+function caption(t){
+  ctx.fillStyle='rgba(8,9,11,.55)'; ctx.fillRect(0,H-28,W,28);
+  ctx.fillStyle='#efece5'; ctx.font='10px "SF Mono",monospace'; ctx.textAlign='center'; ctx.letterSpacing='0.14em';
+  ctx.fillText(t.toUpperCase(),W/2,H-10);
+}
+function frameToCaption(f){
+  if(f<180) return 'Setup — 3 steps: Name → Key → Launch';
+  if(f<720) return 'Step 1 — Name your shop → address updates instantly';
+  if(f<1200) return 'Step 2 — Paste slr_live_… → Validate → Ready green';
+  if(f<1620) return 'Step 3 — Launch shop → Live URL + Inbox ready';
+  return 'Your shop online in minutes — one key, one command';
+}
+function render(i){
+  const t=i/FPS;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle=C.bg; ctx.fillRect(0,0,W,H);
+  bgGradient();
+  const vg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H));
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.45)'); ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+  // topbar — OM SHOP OS
+  ctx.fillStyle='rgba(8,9,11,0.92)'; ctx.fillRect(0,0,W,56);
+  ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.strokeRect(0,0,W,56);
+  ctx.fillStyle='#16181a'; ctx.beginPath(); ctx.roundRect(20,14,28,28,7); ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.stroke();
+  ctx.save(); ctx.translate(34,28); ctx.scale(0.07,0.07); ctx.fillStyle='#20b8cd'; ctx.font='900 380px Impact,sans-serif'; ctx.textAlign='center'; ctx.fillText('OM',0,6); ctx.restore();
+  ctx.fillStyle='#efece5'; ctx.font='800 12px "DIN Condensed",Impact,sans-serif'; ctx.textAlign='left'; ctx.fillText('OPTIMIZED MANUFACTURING — SHOP OS on Solari',60,24);
+  ctx.fillStyle='#8b929c'; ctx.font='9px "SF Mono",monospace'; ctx.fillText('HOWTO — 30s · Name → Key → Launch · 60fps · 1800f',60,40);
+  ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.beginPath(); ctx.roundRect(W-220,10,200,36,18); ctx.fill();
+  ctx.fillStyle='#7de3ef'; ctx.font='800 11px Impact,sans-serif'; ctx.textAlign='center'; ctx.fillText('SETUP — 3 STEPS',W-120,32); ctx.textAlign='left';
+  // progress bar
+  ctx.fillStyle='rgba(255,255,255,0.08)'; ctx.fillRect(0,56,W,2);
+  ctx.fillStyle='#20b8cd'; ctx.fillRect(0,56,W*(i/FRAMES),2);
+  // hero funnel nav — 3 dots
+  const funnelY=98;
+  const funnelX=W/2-180;
+  // compute step states driven by frame i not wall-clock
+  const hasName = i>=420; // after typing "My Buddy Shop"
+  const hasKey = i>=1020; // after validate
+  const launched = i>=1360;
+  const dots=[
+    {label:'Name your shop', state: hasName? 'done' : (i>=120?'on':'todo')},
+    {label:'Paste key', state: hasKey? 'done' : (hasName?'on':'todo')},
+    {label:'Launch', state: launched? 'done' : (hasKey?'on':'todo')},
+  ];
+  dots.forEach((d,idx)=>{
+    const x=funnelX+idx*180;
+    let bg,fg,bd;
+    if(d.state==='done'){ bg='#20b8cd'; fg='#08090b'; bd='#20b8cd'; }
+    else if(d.state==='on'){ bg='#fff'; fg='#08090b'; bd='#fff'; }
+    else { bg='transparent'; fg='#6f7a86'; bd='rgba(255,255,255,0.06)'; }
+    const enter=spring01(clamp((i-(120+idx*60))/220,0,1));
+    ctx.save(); ctx.globalAlpha=clamp(enter,0,1);
+    ctx.fillStyle=bg; ctx.strokeStyle=bd; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(x,yY(funnelY),14,0,Math.PI*2); ctx.fill(); if(bd!=='transparent') ctx.stroke();
+    ctx.fillStyle=fg; ctx.font='700 11px "SF Mono",monospace'; ctx.textAlign='center'; ctx.fillText(d.state==='done'?'✓':String(idx+1),x,yY(funnelY)+4);
+    ctx.fillStyle=d.state==='on'?'#efece5':(d.state==='done'?'#7de3ef':'#6f7a86');
+    ctx.font='9px "SF Mono",monospace'; ctx.fillText(d.label,x,yY(funnelY)+28); ctx.textAlign='left';
+    ctx.restore();
+    if(idx<2){
+      const barX=x+18, barW=144;
+      const prog= clamp((i-(200+idx*220))/260,0,1);
+      ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(barX,funnelY-1,barW,1);
+      ctx.fillStyle=d.state==='done'?'#20b8cd':'rgba(255,255,255,0.18)'; ctx.fillRect(barX,funnelY-1,barW*prog,1);
+    }
+  });
+  function yY(v){ return v; }
+  // cards area 1920x1080 layout centered 740px shell like setup.html
+  const shellX=(W-1220)/2, shellW=1220;
+  // card 1 — Name your shop
+  const c1Y=156, c1H=280;
+  const c1Enter=spring01(clamp((i-140)/18,0,1));
+  const c1Alpha=clamp(c1Enter,0,1);
+  ctx.save(); ctx.globalAlpha=c1Alpha; ctx.translate(0,(1-c1Enter)*14);
+  ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.roundRect(shellX+6,c1Y+6,shellW,c1H,16); ctx.fill();
+  ctx.fillStyle='#111214'; ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.roundRect(shellX,c1Y,shellW,c1H,14); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#1a1d21'; ctx.beginPath(); ctx.roundRect(shellX,c1Y,shellW,40,[14,14,0,0]); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='700 13px Inter,sans-serif'; ctx.fillText('1 — Name your shop',shellX+16,c1Y+26);
+  ctx.fillStyle='#6f7a86'; ctx.font='10px "SF Mono",monospace'; ctx.textAlign='right'; ctx.fillText('Step 1',shellX+shellW-16,c1Y+26); ctx.textAlign='left';
+  // input row
+  const inputX=shellX+16, inputY=c1Y+62, inputW=420, inputH=42;
+  ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.strokeStyle= hasName? 'rgba(32,184,205,0.5)' : 'rgba(255,255,255,0.08)';
+  ctx.lineWidth=1; ctx.beginPath(); ctx.roundRect(inputX,inputY,inputW,inputH,10); ctx.fill(); ctx.stroke();
+  // typing "My Buddy Shop"
+  const nameFull='My Buddy Shop';
+  const typeStart=220, typeEnd=520;
+  const typeProg=clamp((i-typeStart)/(typeEnd-typeStart),0,1);
+  const chars=Math.floor(typeProg*nameFull.length);
+  const showName=nameFull.slice(0,chars);
+  const showAll = i>=520 ? nameFull : showName;
+  ctx.fillStyle='#fff'; ctx.font='600 14px Inter,sans-serif'; ctx.fillText(showAll || ' ',inputX+12,inputY+26);
+  if(chars < nameFull.length && i>=typeStart && (i%14<7)){
+    ctx.fillStyle='#20b8cd'; ctx.fillRect(inputX+12+ctx.measureText(showAll).width+2,inputY+10,2,22);
+  }
+  // arrow + domain preview mono chip
+  ctx.fillStyle='#6f7a86'; ctx.font='12px "SF Mono",monospace'; ctx.fillText('→',inputX+inputW+10,inputY+26);
+  const slug=slugify(showAll || 'my-shop');
+  const domain=slug+'.getsolari.app';
+  // mono chip for domain
+  const chipX=inputX+inputW+32, chipY=inputY+6, chipW=520, chipH=30;
+  ctx.fillStyle='rgba(32,184,205,0.10)'; ctx.strokeStyle='rgba(32,184,205,0.18)'; ctx.beginPath(); ctx.roundRect(chipX,chipY,chipW,chipH,999); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#20b8cd'; ctx.font='12px "SF Mono",monospace'; ctx.fillText(domain,chipX+12,chipY+20);
+  // url preview + open link
+  ctx.fillStyle='#9aa0a8'; ctx.font='12px "SF Mono",monospace'; ctx.fillText('https://'+domain,shellX+16,c1Y+128);
+  ctx.fillStyle='#20b8cd'; ctx.font='11px Inter,sans-serif'; ctx.fillText('Open your site →',shellX+shellW-160,c1Y+128);
+  // acme buddy hint — show both acme-precision and my-buddy-shop for palette continuity
+  ctx.fillStyle='#6f7a86'; ctx.font='10px "SF Mono",monospace'; ctx.fillText('acme-precision.getsolari.app · my-buddy-shop.getsolari.app · 2–48 chars',shellX+16,c1Y+150);
+  // preview card
+  ctx.fillStyle='rgba(255,255,255,0.03)'; ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.roundRect(shellX+16,c1Y+170,shellW-32,72,12); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#efece5'; ctx.font='10px "SF Mono",monospace'; ctx.fillText('LIVE PREVIEW — https://'+domain,shellX+28,c1Y+192);
+  ctx.fillStyle='#8b929c'; ctx.font='11px Inter,sans-serif'; ctx.fillText('Type name → address updates instantly. No save needed.',shellX+28,c1Y+212);
+  ctx.restore();
+  // card 2 — Paste key
+  const c2Y=460, c2H=260;
+  const c2Enter=spring01(clamp((i-520)/18,0,1));
+  ctx.save(); ctx.globalAlpha=clamp(c2Enter,0,1); ctx.translate(0,(1-c2Enter)*14);
+  ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.roundRect(shellX+6,c2Y+6,shellW,c2H,16); ctx.fill();
+  ctx.fillStyle='#111214'; ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.roundRect(shellX,c2Y,shellW,c2H,14); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#1a1d21'; ctx.beginPath(); ctx.roundRect(shellX,c2Y,shellW,40,[14,14,0,0]); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='700 13px Inter,sans-serif'; ctx.fillText('2 — Paste key',shellX+16,c2Y+26);
+  ctx.fillStyle='#6f7a86'; ctx.font='10px "SF Mono",monospace'; ctx.textAlign='right'; ctx.fillText('Step 2',shellX+shellW-16,c2Y+26); ctx.textAlign='left';
+  ctx.fillStyle='#9aa0a8'; ctx.font='12px Inter,sans-serif'; ctx.fillText('Get key: console.getsolari.com → API Keys → Create → Copy',shellX+16,c2Y+64);
+  const kInputX=shellX+16, kInputY=c2Y+84, kInputW=560, kInputH=42;
+  ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.strokeStyle= hasKey? 'rgba(34,197,94,0.5)' : 'rgba(255,255,255,0.08)'; ctx.beginPath(); ctx.roundRect(kInputX,kInputY,kInputW,kInputH,10); ctx.fill(); ctx.stroke();
+  const keyFull='slr_live_…';
+  const keyReal='slr_live_placeholder_demo_key_for_video_only';
+  // typing key between 660-940
+  const kProg=clamp((i-660)/(940-660),0,1);
+  const kChars=Math.floor(kProg*keyReal.length);
+  const showKey= i<660 ? '' : (kChars>=keyReal.length ? keyFull : keyReal.slice(0,kChars));
+  // mask as dots but reveal slr_live_ prefix
+  let displayKey = showKey;
+  if(showKey.length>8){ displayKey = showKey.slice(0,8) + '••••••••••••••••'; }
+  ctx.fillStyle='#fff'; ctx.font='13px "SF Mono",monospace'; ctx.fillText(displayKey || 'slr_live_...',kInputX+12,kInputY+26);
+  if(kChars < keyReal.length && i>=660 && (i%12<7)){
+    ctx.fillStyle='#20b8cd'; ctx.fillRect(kInputX+12+ctx.measureText(displayKey).width+2,kInputY+10,2,22);
+  }
+  // show/hide pill
+  ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.beginPath(); ctx.roundRect(kInputX+kInputW-66,kInputY+6,60,30,999); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#9aa0a8'; ctx.font='11px "SF Mono",monospace'; ctx.textAlign='center'; ctx.fillText(i%40<20?'Show':'Hide',kInputX+kInputW-36,kInputY+25); ctx.textAlign='left';
+  // validate button
+  const btnX=kInputX+kInputW+12, btnY=kInputY+4, btnW=110, btnH=34;
+  const btnActive = i>700;
+  ctx.fillStyle= btnActive? '#fff' : 'rgba(255,255,255,0.08)'; ctx.beginPath(); ctx.roundRect(btnX,btnY,btnW,btnH,999); ctx.fill();
+  ctx.fillStyle= btnActive? '#08090b' : '#6f7a86'; ctx.font='700 12px Inter,sans-serif'; ctx.textAlign='center'; ctx.fillText('Validate',btnX+btnW/2,btnY+22); ctx.textAlign='left';
+  // keyStatus chip — mono chips palette #08090b/#20b8cd/#9df0f8
+  const statusX=btnX+btnW+12, statusY=btnY+4;
+  let statusText='Not validated', statusBg='rgba(255,255,255,0.03)', statusBd='rgba(255,255,255,0.06)', statusFg='#8b929c';
+  if(i>=1020){ statusText='Ready — key valid'; statusBg='rgba(34,197,94,0.14)'; statusBd='rgba(34,197,94,0.3)'; statusFg='#22c55e'; }
+  else if(i>=940){ statusText='Checking key…'; statusBg='rgba(255,255,255,0.04)'; statusBd='rgba(255,255,255,0.08)'; statusFg='#9df0f8'; }
+  const sw=ctx.measureText(statusText).width+24;
+  ctx.fillStyle=statusBg; ctx.strokeStyle=statusBd; ctx.beginPath(); ctx.roundRect(statusX,statusY,sw,26,999); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=statusFg; ctx.font='11px "SF Mono",monospace'; ctx.fillText(statusText,statusX+12,statusY+17);
+  // green pulse when valid
+  if(i>=1020 && (i%30<16)){
+    ctx.strokeStyle='rgba(34,197,94,0.35)'; ctx.lineWidth=1; ctx.beginPath(); ctx.roundRect(statusX-2,statusY-2,sw+4,30,999); ctx.stroke();
+  }
+  // help line
+  ctx.fillStyle='#6f7a86'; ctx.font='11px Inter,sans-serif'; ctx.fillText('Stays in browser only. console.getsolari.com → API Keys → Copy slr_live_…',shellX+16,c2Y+148);
+  // validation progress bar
+  if(i>=940 && i<1020){
+    const vProg=clamp((i-940)/80,0,1);
+    ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(shellX+16,c2Y+164,shellW-32,3);
+    ctx.fillStyle='#9df0f8'; ctx.fillRect(shellX+16,c2Y+164,(shellW-32)*vProg,3);
+  }
+  ctx.restore();
+  // card 3 — Launch shop
+  const c3Y=744, c3H=280;
+  const c3Enter=spring01(clamp((i-980)/18,0,1));
+  ctx.save(); ctx.globalAlpha=clamp(c3Enter,0,1); ctx.translate(0,(1-c3Enter)*14);
+  ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.roundRect(shellX+6,c3Y+6,shellW,c3H,16); ctx.fill();
+  ctx.fillStyle='#111214'; ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.roundRect(shellX,c3Y,shellW,c3H,14); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#1a1d21'; ctx.beginPath(); ctx.roundRect(shellX,c3Y,shellW,40,[14,14,0,0]); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='700 13px Inter,sans-serif'; ctx.fillText('3 — Launch shop',shellX+16,c3Y+26);
+  let launchState='Needs validation'; let launchCol='#6f7a86';
+  if(launched){ launchState='Launched — ready'; launchCol='#22c55e'; } else if(hasKey){ launchState='Ready to launch'; launchCol='#f59e0b'; }
+  ctx.fillStyle=launchCol; ctx.font='10px "SF Mono",monospace'; ctx.textAlign='right'; ctx.fillText(launchState,shellX+shellW-16,c3Y+26); ctx.textAlign='left';
+  // launch button
+  const lBtnX=shellX+16, lBtnY=c3Y+62, lBtnW=180, lBtnH=36;
+  const lEnabled = hasKey;
+  const lPressed = i>=1240 && i<1260;
+  ctx.fillStyle= lEnabled? (lPressed?'#9df0f8':'#fff') : 'rgba(255,255,255,0.08)'; ctx.beginPath(); ctx.roundRect(lBtnX,lBtnY,lBtnW,lBtnH,999); ctx.fill();
+  ctx.fillStyle= lEnabled? '#08090b' : '#6f7a86'; ctx.font='700 13px Inter,sans-serif'; ctx.textAlign='center'; ctx.fillText('Launch shop →',lBtnX+lBtnW/2,lBtnY+23); ctx.textAlign='left';
+  // launch status chip
+  const lsX=lBtnX+lBtnW+12, lsY=lBtnY+6;
+  let lsText='Waiting for Step 2', lsBg='rgba(255,255,255,0.03)', lsBd='rgba(255,255,255,0.06)', lsFg='#6f7a86';
+  if(launched){ lsText='Launched — ready'; lsBg='rgba(34,197,94,0.14)'; lsBd='rgba(34,197,94,0.3)'; lsFg='#22c55e'; }
+  else if(hasKey){ lsText='Ready to launch'; lsBg='rgba(245,158,11,0.16)'; lsBd='rgba(245,158,11,0.32)'; lsFg='#f59e0b'; }
+  const lsw=ctx.measureText(lsText).width+24;
+  ctx.fillStyle=lsBg; ctx.strokeStyle=lsBd; ctx.beginPath(); ctx.roundRect(lsX,lsY,lsw,24,999); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=lsFg; ctx.font='11px "SF Mono",monospace'; ctx.fillText(lsText,lsX+12,lsY+16);
+  // detail grid — live URL + inbox
+  const detY=c3Y+114;
+  const kvW=(shellW-48)/2;
+  // Live URL
+  ctx.fillStyle='rgba(255,255,255,0.03)'; ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.roundRect(shellX+16,detY,kvW,54,10); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#6f7a86'; ctx.font='10px "SF Mono",monospace'; ctx.fillText('Live URL',shellX+28,detY+18);
+  ctx.fillStyle='#20b8cd'; ctx.font='12px "SF Mono",monospace'; ctx.fillText('https://'+slug+'.getsolari.app',shellX+28,detY+38);
+  // Inbox — First RFQ
+  const inboxX=shellX+16+kvW+16;
+  const inboxReveal=spring01(clamp((i-1360)/18,0,1));
+  ctx.save(); ctx.globalAlpha=clamp(inboxReveal,0,1);
+  ctx.fillStyle='rgba(255,255,255,0.03)'; ctx.strokeStyle='rgba(32,184,205,0.18)'; ctx.beginPath(); ctx.roundRect(inboxX,detY,kvW,54,10); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#6f7a86'; ctx.font='10px "SF Mono",monospace'; ctx.fillText('Inbox — First RFQ',inboxX+12,detY+18);
+  ctx.fillStyle='#efece5'; ctx.font='700 12px "SF Mono",monospace'; ctx.fillText('#d0c02d7818 — Inbox',inboxX+12,detY+38);
+  if(launched){
+    ctx.fillStyle='#22c55e'; ctx.beginPath(); ctx.arc(inboxX+kvW-18,detY+30,6,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+  // session line mono
+  const sessY=c3Y+184;
+  ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.roundRect(shellX+16,sessY,shellW-32,32,10); ctx.fill(); ctx.stroke();
+  let sessText='Session: setup needed — run installer for live site';
+  if(launched) sessText='Session: sess_howto30 — Ready · browser+sandbox+desktop';
+  else if(hasKey) sessText='Session: Ready · local (run installer for live site)';
+  ctx.fillStyle='#6f7a86'; ctx.font='11px "SF Mono",monospace'; ctx.fillText(sessText,shellX+28,sessY+20);
+  ctx.fillStyle='#20b8cd'; ctx.font='11px "SF Mono",monospace'; ctx.textAlign='right'; ctx.fillText('Open shop →',shellX+shellW-18,sessY+20); ctx.textAlign='left';
+  // installer command preview — appears after launch
+  if(i>=1420){
+    const icY=c3Y+224;
+    const icAlpha=spring01(clamp((i-1420)/16,0,1));
+    ctx.save(); ctx.globalAlpha=icAlpha;
+    ctx.fillStyle='#0a0b0d'; ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.roundRect(shellX+16,icY,shellW-32,42,10); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#efece5'; ctx.font='11px "SF Mono",monospace'; ctx.fillText('SOLARI_API_KEY=slr_live_… npx tsx examples/shop-runner/index.ts --shop "'+slug+'" --funnel bring',shellX+28,icY+26);
+    ctx.restore();
+  }
+  ctx.restore();
+  // cursor choreography — deterministic per frame i
+  let cx,cy,clicking=false;
+  const curAlpha=1;
+  if(i<300){
+    const u=clamp((i-220)/180,0,1);
+    const sx=shellX+16+80, sy=c1Y+86;
+    const tx=shellX+16+180, ty=c1Y+86;
+    cx=sx+(tx-sx)*ease(u); cy=sy+(ty-sy)*ease(u);
+  } else if(i<760){
+    const u=clamp((i-560)/160,0,1);
+    const sx=shellX+16+80, sy=c1Y+86;
+    const tx=kInputX+120, ty=kInputY+22;
+    cx=sx+(tx-sx)*ease(u); cy=sy+(ty-sy)*ease(u);
+  } else if(i<1040){
+    const u=clamp((i-760)/180,0,1);
+    const sx=kInputX+120, sy=kInputY+22;
+    const tx=btnX+btnW/2, ty=btnY+18;
+    cx=sx+(tx-sx)*ease(u); cy=sy+(ty-sy)*ease(u); clicking = u>0.82 && u<0.92;
+  } else if(i<1300){
+    const u=clamp((i-1040)/160,0,1);
+    const sx=btnX+btnW/2, sy=btnY+18;
+    const tx=lBtnX+lBtnW/2, ty=lBtnY+18;
+    cx=sx+(tx-sx)*ease(u); cy=sy+(ty-sy)*ease(u); clicking = u>0.82 && u<0.92;
+  } else {
+    cx=lBtnX+lBtnW/2; cy=lBtnY+18; if(i%60<12) clicking=true;
+  }
+  drawCursor(cx,cy,i,clicking,curAlpha);
+  // footer + caption
+  ctx.fillStyle='#08090b'; ctx.fillRect(0,H-28,W,28);
+  ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(0,H-28,W,1);
+  ctx.fillStyle='#6f7a86'; ctx.font='10px "SF Mono",monospace'; ctx.textAlign='left'; ctx.fillText('OM #08090b · #20b8cd · c3259a26 · 30s · 60fps · 1800f',20,H-10);
+  ctx.textAlign='right'; ctx.fillText('Setup — Name → Key → Launch',W-20,H-10); ctx.textAlign='left';
+  caption(frameToCaption(i));
+  // grain deterministic xorshift32
+  ctx.globalAlpha=0.045; for(let k=0;k<600;k++){ const s=(i*9973+k*7919+SEED)>>>0; const x=xorshift32(s)*W, y=xorshift32((s+1)>>>0)*H; ctx.fillStyle=xorshift32((s+2)>>>0)<0.5?'#fff':'#000'; ctx.fillRect(x,y,1,1);} ctx.globalAlpha=1;
+  if(!location.hash.includes('cine')){
+    ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.font='9px "SF Mono",monospace'; ctx.fillText('SETUP CINE  frame '+i+'/'+FRAMES+'  spring 420/28/0.9  #08090b #20b8cd #9df0f8  SEED '+SEED.toString(16),20,H-38);
+  }
+}
+const META={width:W,height:H,fps:FPS,frames:FRAMES,duration_s:DUR};
+window.__cineMeta={width:W,height:H,fps:FPS,frames:FRAMES,duration_s:DUR};
+window.__sceneReady=true;
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    if(typeof r==='number') r=[r]; if(r.length===1) r=[r[0],r[0],r[0],r[0]];
+    this.moveTo(x+r[0],y); this.arcTo(x+w,y,x+w,y+h,r[1]); this.arcTo(x+w,y+h,x,y+h,r[2]); this.arcTo(x,y+h,x,y,r[3]); this.arcTo(x,y,x+w,y,r[0]); this.closePath();
+  };
+}
+window.__cineFrame=function(f){
+  f=Math.max(0,Math.min(FRAMES-1, f|0));
+  render(f);
+  return canvas.toDataURL('image/jpeg',0.97);
+};
+if(!location.hash.includes('cine')){
+  let f=0; function loop(){ render(f); f=(f+1)%FRAMES; requestAnimationFrame(loop); } loop();
+  document.getElementById('pre').textContent='Howto Setup — 30s · 60fps · 1800 frames — append #cine for deterministic capture · #cine-clean hides debug';
+}
+</script>
+</html>
