@@ -4,7 +4,7 @@
 
 [![Hero — live demo](https://img.shields.io/badge/demo-hero.html%20%E2%96%B6-20b8cd?style=for-the-badge)](./docs/hero.html) [![Watch 60s](https://img.shields.io/badge/watch-demo--60s.mp4-08090b?style=for-the-badge)](./docs/demo-60s.mp4) ![60fps](https://img.shields.io/badge/60fps-1920x1080%20H.264%20yuv420p-7de3ef?style=flat-square)
 
-> **Watch:** [`docs/hero.html`](./docs/hero.html) (interactive) · [`docs/demo-60s.mp4`](./docs/demo-60s.mp4) (60s · 1920×1080 · 60fps · H.264 · 7.4 MB) — deterministic `hero60-cine.html#__cineFrame` → `playwright` → `ffmpeg-static` (`libx264 slow crf16 yuv420p bt709 faststart`). Fallback B-roll: `docs/slewing-bearing.html#cine` (Three.js r160 cinematic, same `__cineFrame` pipeline).
+> **Watch:** [`docs/hero.html`](./docs/hero.html) (interactive) · [`docs/demo-60s.mp4`](./docs/demo-60s.mp4) (60s · 1920×1080 · 60fps · H.264 · 9.3 MB) — deterministic `hero60-cine.html#__cineFrame` → `playwright` → `ffmpeg-static` (`libx264 slow crf16 yuv420p bt709 faststart`). Fallback B-roll: `docs/slewing-bearing.html#cine` (Three.js r160 cinematic, same `__cineFrame` pipeline).
 
 ## Turn your shop into a real business. You make parts. We handle the office.
 
@@ -25,7 +25,7 @@ Plain English. No jargon.
 
 **Time to First RFQ: Mock: <3s, no key · Live: ~4 min (Starter)** — mock is green with no billing; same flow hits real Solari infra with `slr_live_`.
 
-[^hash]: Display `c3259a26…` (8 + ellipsis) = full `c3259a261f868443` (16-char `sha256[:16]`).
+[^hash]: Display `c3259a26…` (8 + ellipsis) = full `c3259a261f868443` (16-char `sha256[:16]`) from the live build123d sandbox path. Running with no `SOLARI_API_KEY` exercises the deterministic mock path, which prints its own placeholder hash instead — set `slr_live_` to reproduce `c3259a26…` exactly.
 
 Footnote only: Browsers · Sandboxes · Desktops on one `slr_live_` key.
 

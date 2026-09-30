@@ -32,7 +32,7 @@ Proof in PROOF.md: git log --all -S "chow" --before="2026-08-31"
 
 ## Video
 
-Attach `docs/demo-60s.mp4` native to the main post (7.4MB, under 512MB limit) — do not link-only. Record per `docs/demo.md` (fleet → factory → desktop → teardown) if re-cutting, but the tracked 1920×1080 60fps H.264 yuv420p is the source of truth. Landing video is `docs/hero.html` hero. Even mock mode is green.
+Attach `docs/demo-60s.mp4` native to the main post (9.3MB, under 512MB limit) — do not link-only. Record per `docs/demo.md` (fleet → factory → desktop → teardown) if re-cutting, but the tracked 1920×1080 60fps H.264 yuv420p is the source of truth. Landing video is `docs/hero.html` hero. Even mock mode is green.
 
 Pre-publish checks: `ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,avg_frame_rate,pix_fmt,duration -of default=nw=1 docs/demo-60s.mp4` and `open file://$(pwd)/docs/hero.html` (also `docs/demo-60s.mp4` plays).
 
@@ -44,4 +44,4 @@ Pre-publish checks: `ffprobe -v error -select_streams v:0 -show_entries stream=c
 - [ ] No SOLARI_API_KEY or .env committed (`git log --all -S "slr_live"`)
 - [ ] Tags are exactly `@harrychow_` and `@getsolari`
 - [ ] Hash display is `c3259a26…` (8 + ellipsis) = `c3259a261f868443` full 16 — consistent across README/badges/docs
-- [ ] Video attached natively: `docs/demo-60s.mp4` (7.4MB, H.264 yuv420p 60fps) under 512MB
+- [ ] Video attached natively: `docs/demo-60s.mp4` (9.3MB, H.264 yuv420p 60fps) under 512MB
