@@ -88,10 +88,10 @@ git status --short
 
 Quote or reply to https://x.com/harrychow_/status/2094437473912844480 with the same text + repo link so it shows in his notifications.
 
-## 6) Next rich-grain re-render (documented, not run now)
+## 6) Rich-grain re-render (recipe + measured result; last run 2026-09-30)
 
-Current `docs/demo-60s.mp4` is 9,798,834 B (9.34 MiB, ~1.31 Mbps) — lean for
-1920×1080 60fps grain, but it is **inside the repo weight cap** and must stay there:
+Current `docs/demo-60s.mp4` is 14,304,863 B (13.64 MiB, ~1.91 Mbps) — two-pass ABR from
+the uncapped master, and it is **inside the repo weight cap** and must stay there:
 `scripts/verify-video.mjs` hard-fails the ship path above **15 MiB** and below 5 MiB.
 
 **The cap, not a bitrate target, is what governs this file.** An earlier draft of this
@@ -106,19 +106,24 @@ two files, which `.gitignore:15` already anticipates:
 | `docs/demo-60s.mp4` | the **tracked** ship artifact | `>5 MiB` and `<=15 MiB` |
 
 Render the master, then derive the ship file from it (the remedy
-`verify-video.mjs:45` names on its own failure line):
+`verify-video.mjs:45` names on its own failure line). Two passes, because the
+size cap — not a quality target — is what governs the tracked file:
 
 ```bash
 # 1. master (uncapped) — cine renderer now defaults OUT to the hq path
 CRF=12 PRESET=medium node scripts/render-hero60-cine.mjs
 #    → docs/demo-60s.hq.mp4
 
-# 2. ship file (capped) — two-pass from the master
-node_modules/ffmpeg-static/ffmpeg -y -i docs/demo-60s.hq.mp4 \
-  -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p \
+# 2. ship file (capped) — two-pass ABR from the master
+FF=node_modules/ffmpeg-static/ffmpeg
+$FF -y -i docs/demo-60s.hq.mp4 -c:v libx264 -preset medium -b:v 1800k \
+  -pass 1 -passlogfile /tmp/ffpass60 -an -f null /dev/null
+$FF -y -i docs/demo-60s.hq.mp4 -c:v libx264 -preset medium -b:v 1800k \
+  -pass 2 -passlogfile /tmp/ffpass60 -pix_fmt yuv420p \
   -vf scale=1920:1080:flags=lanczos,format=yuv420p \
   -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
   -movflags +faststart docs/demo-60s.mp4
+#    measured 2026-09-30: pass-2 1901 kb/s → 14,304,863 B (13.64 MiB) — inside the cap
 ```
 
 ⚠️ `scripts/render-hero60-stream.mjs:10` **still defaults `OUT` to the ship path** and
