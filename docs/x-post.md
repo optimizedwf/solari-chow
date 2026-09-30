@@ -38,10 +38,11 @@ Pre-publish checks: `ffprobe -v error -select_streams v:0 -show_entries stream=c
 
 ## Checklist before tagging
 
-- [ ] Repo is public
-- [ ] README link is solari-sdk/solari-cookbook (not getsolari/cookbook)
-- [ ] `git clone && npm install && npm run demo` prints FLEET SUMMARY with no errors
-- [ ] No SOLARI_API_KEY or .env committed (`git log --all -S "slr_live"`)
-- [ ] Tags are exactly `@harrychow_` and `@getsolari`
-- [ ] Hash display is `c3259a26…` (8 + ellipsis) = `c3259a261f868443` full 16 — consistent across README/badges/docs
-- [ ] Video attached natively: `docs/demo-60s.mp4` (9.3MB, H.264 yuv420p 60fps) under 512MB
+- [x] Repo is public — anonymous `GET /repos/optimizedwf/solari-chow` → `200`, `"private": false`, `"visibility": "public"`, default branch `main`
+- [x] README link is solari-sdk/solari-cookbook (not getsolari/cookbook) — `README.md:100`
+- [x] `git clone && npm install && npm run demo` prints FLEET SUMMARY with no errors — fresh clone, 45 packages, exit `0`, prints `FLEET SUMMARY — persona → sessionId → title found  [MOCK (no key — sess_mock_…)]`, zero error lines
+- [x] No SOLARI_API_KEY or .env committed — sound test: `git rev-list --all | while read c; do git grep -n -I -E 'slr_live_[A-Za-z0-9_-]{20,}' "$c"; done` → only deliberate placeholders (`.env.example:3`, `docs/howto-setup-cine.html:199`, `scripts/render-howto-setup-30s.mjs:79`). No real key.
+      NOTE: `git log --all -S "slr_live"` is NOT a valid test — `-S` matches a change in the string's OCCURRENCE COUNT, so it flags any prose that merely mentions the prefix (including this file's own footnote). Use the `git rev-list` form above.
+- [x] Tags are exactly `@harrychow_` and `@getsolari` — `grep -o -E '@[A-Za-z0-9_]+' docs/x-post.md | sort -u` → exactly those two
+- [x] Hash display is `c3259a26…` (8 + ellipsis) = `c3259a261f868443` full 16 — consistent across README/badges/docs
+- [x] Video attached natively: `docs/demo-60s.mp4` — measured `h264 (High)`, `yuv420p`, `1920x1080`, `60 fps`, `00:01:00.00`, 9,798,834 B (9.35 MiB) < 512 MB
