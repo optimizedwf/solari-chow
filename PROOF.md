@@ -1,74 +1,84 @@
-# PROOF — Chow predates this post
+# PROOF — determinism, not destiny
 
-**Claim:** Chow (the Shop OS agent) predates Harry Chow's Solari intern challenge post (2026-08-31) by years. This submission is not a rename.
-
-## Timeline
-
-- **2024** — The Shop OS agent is named **Chow**. Internal references to "chow" appear in code and commits from this period onward.
-- **2024–25** — Shop OS (Optimized Manufacturing) commits referencing Chow as the shop agent. Timestamped in git history.
-- **2026-08-31** — Harry Chow posts the [$300K Solari intern challenge](https://x.com/harrychow_/status/2094437473912844480).
-
-The shared name is coincidence — now made into a hook: **Chow 🤝 Harry Chow**.
-
-## What "Chow" refers to here
-
-- **Chow** — the Shop OS agent for Optimized Manufacturing (the CNC shop operating system). Not a personal rebrand.
-- **Shop OS** — the product. Chow operates it; Solari is the infra it now runs on (browsers + sandboxes + desktops).
-
-## How a reviewer can verify
-
-Check git history of the Shop OS origin repo for the earliest `chow` references:
+**The claim:** the same part, built twice, hashes the same. You can check that yourself, with no
+Solari key:
 
 ```bash
-git clone https://github.com/optimizedwf/ai-cnc-programmer.git
-cd ai-cnc-programmer
-
-# earliest commits mentioning chow (case-insensitive)
-git log --all --oneline --grep=chow -i | tail -n 20
-git log --all --oneline --grep=CHOW | tail -n 20
-
-# earliest appearance of the string "chow" anywhere in the history
-git log --all -S "chow" --oneline | tail -n 20
-git log --all -S "Chow" --oneline | tail -n 20
-
-# by date — show the oldest commits first
-git log --all --reverse --oneline | head -n 50
-
-# patch search — prove the name existed before 2026-08-31
-git log --all --before="2026-08-31" -S "chow" --oneline | tail -n 20
-git log --all --before="2026-08-31" --grep=chow -i --oneline | tail -n 20
+git clone https://github.com/optimizedwf/solari-chow.git
+cd solari-chow && npm install
+npm run factory          # exits 0 with no key set
 ```
 
-Any commit timestamped before 2026-08-31 that contains `chow` in the message, diff, or filename confirms the name predates the challenge post. GitHub's commit history UI shows the same — sort by oldest and search for "chow".
+Two independent builds of bearing `6205` (bore 25 / OD 52 / width 15 / 7 balls), each normalized
+before hashing. The determinism check is `hashA === hashB`. The DFM invariant is asserted in code
+(`assert params["balls"] == params["grooves"]`), not printed as a slogan.
 
+## Which hash you get, and why they differ
 
-## Why this repo alone doesn't prove it
+`npm run factory` has three paths and they print **different** hashes, because they hash **different
+things**. We would rather tell you that up front than let you discover it.
 
-`solari-chow` was created **2026-08-31** — so `git log` *in this repo* only shows Aug 2026 history (see `git log --all --date=short` — earliest is 2026-08-31). That is expected: this repo is the Solari integration, not the origin.
+| path | how to run | what is hashed | hash |
+|---|---|---|---|
+| live Solari sandbox | `SOLARI_API_KEY=slr_live_… npm run factory` | normalized **STEP bytes** | `c3259a261f868443` |
+| local build123d | `pip install build123d && npm run factory` | normalized **STEP bytes** | asserted against the pinned `c3259a261f868443`; a serializer-version move prints `golden drift (warn)` instead of a false pass |
+| no build123d (the default) | `npm run factory` | the **params JSON** | `a856e73e30dd0ff5` |
 
-Proof lives in the origin private repo `ai-cnc-programmer` (Optimized Manufacturing's Shop OS), which has history back to 2024. Redacted excerpt (author/date redacted for privacy):
+**Measured on a clean clone, no key, no build123d.** This is the actual output, not an illustration:
 
 ```
-# from origin repo — run locally after clone
-# (private — access granted to reviewers on request; public excerpt on file in PROOF.md)
-# Example shape (dates/hashes redacted, structure preserved):
-# 2024-03-14  a1b2c3d  chore(chow): scaffold Chow agent — shop intent → DFM hint
-# 2024-06-02  e4f5g6h  feat(chow): Chow persona picks first toolpath hint (chow: in diff + message)
-# 2025-01-19  i7j8k9l  docs: Chow operating the shop loop — name appears in code + filename
+Params (primary): {"boreMm":25,"odMm":52,"widthMm":15,"balls":7,"grooves":7,"model":"6205","family":"6205"}
+
+Params (bracket check): {"family":"bracket","width":100,"height":60,"thickness":6,"holes":4,"holeDiam":5.4}
+
+→ Local factory (mock sandboxes)…
+  check: 7 balls == 7 grooves ✓
+  files round-trip ✓
+  mock hashlib fallback (build123d not installed)
+  determinism: a856e73e30dd0ff5 == a856e73e30dd0ff5 ✓
+  golden not checked (hashlib fallback — build123d not installed)
+  mock hashlib fallback (build123d not installed)
+  determinism: d95263ef4bf0f1ef == d95263ef4bf0f1ef ✓
+  golden not checked (hashlib fallback — build123d not installed)
+
+hash (hashlib fallback — no STEP built) hash A: a856e73e30dd0ff5   B: a856e73e30dd0ff5   → EQUAL ✓
 ```
 
-Verify (if you have origin access; otherwise see excerpt above + GitHub UI oldest-first search for "chow"):
+…and the run ends:
+
+```
+FACTORY RESULT: PASS ✓
+Local mock (hashlib) build, deterministic hash (params JSON — not STEP bytes), browser-verified card.
+```
+
+`a856e73e30dd0ff5` is not a magic number. It is `sha256` of the params JSON above, first 16 hex
+chars — check it in one line, no Python needed:
 
 ```bash
-git clone https://github.com/optimizedwf/ai-cnc-programmer.git
-cd ai-cnc-programmer
-git log --all --before="2026-08-31" -S "chow" --oneline | tail -n 20
-git log --all --before="2026-08-31" --grep=chow -i --oneline | tail -n 20
-# Any commit before 2026-08-31 containing "chow" confirms the name predates the challenge post.
+printf '%s' '{"boreMm":25,"odMm":52,"widthMm":15,"balls":7,"grooves":7,"model":"6205","family":"6205"}' | shasum -a 256 | cut -c1-16
+# a856e73e30dd0ff5
 ```
 
-If you only check `solari-chow` history, you will see 2026-08-31 onward — that does not contradict the claim: the claim is about the Shop OS origin, with this repo as its Solari port.
+On this path the factory prints `golden not checked` **on purpose**. It will not claim the pinned
+STEP hash when it has not built a STEP. Where it *does* build one, it asserts the value and prints
+`golden hash c3259a261f868443 ✓`, or `golden drift (warn)` if a build123d serializer version moved
+the bytes without moving the geometry. A check that cannot fail is not a check, so we made this one
+able to fail.
 
-## Notes
+**One thing that looks like a mismatch and is not:** the part card is written as
+`chow-part-card-c3259a26.html` and displays `c3259a26…` even in mock mode. The card is a showcase
+artifact pinned to the published reference hash so it stays byte-stable across machines. It is not
+the determinism check. The determinism check is `hashA === hashB` in the terminal above.
 
-- Commit timestamps are Git-authored dates, preserved on GitHub. Cloning and running `git log` locally is the canonical verification.
+## What this does NOT claim
+
+That "Chow" predates Harry Chow's post. An earlier draft of this file asserted the Shop OS agent was
+named Chow "2024–25" and that our CNC repo had "history back to 2024". Both were wrong. Measured:
+
+| Repo | created | oldest commit |
+|---|---|---|
+| `optimizedwf/solari-chow` | 2026-09-01T01:48:17Z | `d3bf1d8` 2026-09-03 |
+
+There is no 2024 history. Our CNC repo's oldest commit is 2026-06-14 — four months before the post,
+not years — and it is private, so you cannot check it, which is precisely why we are not asking you
+to. **The name overlap is a coincidence we turned into a hook. It is not evidence of anything.**

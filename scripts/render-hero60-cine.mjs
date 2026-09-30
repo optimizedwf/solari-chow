@@ -10,7 +10,7 @@ import path from 'node:path';
 const W=1920,H=1080,FPS=60,FRAMES=3600;
 const INSERT_START=2160, INSERT_END=2760; // 600 frames = 10s
 const SLEW_START=1320;
-const OUT = process.env.OUT || path.join(process.cwd(), 'docs/demo-60s.mp4');
+const OUT = process.env.OUT || path.join(process.cwd(), 'docs/demo-60s.hq.mp4');
 const FFMPEG = process.env.FFMPEG || path.join(process.cwd(), 'node_modules/ffmpeg-static/ffmpeg');
 const HERO_URL = process.env.PAGE_URL || `file://${path.join(process.cwd(), 'docs/hero60-cine.html')}#cine-clean`;
 const SLEW_URL = `file://${path.join(process.cwd(), 'docs/slewing-bearing.html')}#cine-clean`;
@@ -130,6 +130,18 @@ await new Promise((res,rej)=>{
 await browser.close();
 const st=fs.statSync(OUT);
 console.log(`DONE ${OUT} ${(st.size/1024/1024).toFixed(2)} MB ${FRAMES} frames (hero ${FRAMES-600} + slew 600)`);
+// Ship-path guard — docs/demo-60s.mp4 is the TRACKED artifact and must stay inside the
+// repo weight cap (>5 MiB, <=15 MiB — mirrors scripts/verify-video.mjs:43-45). The hq
+// master written by default has no such cap.
+const SHIP = path.join(process.cwd(), 'docs/demo-60s.mp4');
+if (path.resolve(OUT) === path.resolve(SHIP)) {
+  const MIN = 5 * 1024 * 1024, MAX = 15 * 1024 * 1024;
+  if (st.size <= MIN || st.size > MAX) {
+    console.error(`[FAIL] ship artifact ${SHIP} is ${st.size} bytes (${(st.size/1024/1024).toFixed(2)} MB) — must be >${MIN} and <=${MAX} bytes`);
+    process.exit(1);
+  }
+  console.log(`[PASS] ship artifact ${st.size} bytes (${(st.size/1024/1024).toFixed(2)} MB) within (${MIN}, ${MAX}]`);
+}
 try{
   const poster= `${process.cwd()}/docs/poster.jpg`;
   execSync(`${JSON.stringify(FFMPEG)} -y -ss 00:00:35 -i ${JSON.stringify(OUT)} -vframes 1 -q:v 2 ${JSON.stringify(poster)} 2>&1`,{encoding:'utf8',timeout:15000});

@@ -4,7 +4,7 @@
 
 [![Hero — live demo](https://img.shields.io/badge/demo-hero.html%20%E2%96%B6-20b8cd?style=for-the-badge)](./docs/hero.html) [![Watch 60s](https://img.shields.io/badge/watch-demo--60s.mp4-08090b?style=for-the-badge)](./docs/demo-60s.mp4) ![60fps](https://img.shields.io/badge/60fps-1920x1080%20H.264%20yuv420p-7de3ef?style=flat-square)
 
-> **Watch:** [`docs/hero.html`](./docs/hero.html) (interactive) · [`docs/demo-60s.mp4`](./docs/demo-60s.mp4) (60s · 1920×1080 · 60fps · H.264 · 9.3 MB) — deterministic `hero60-cine.html#__cineFrame` → `playwright` → `ffmpeg-static` (`libx264 slow crf16 yuv420p bt709 faststart`). Fallback B-roll: `docs/slewing-bearing.html#cine` (Three.js r160 cinematic, same `__cineFrame` pipeline).
+> **Watch:** [`docs/hero.html`](./docs/hero.html) (interactive) · [`docs/demo-60s.mp4`](./docs/demo-60s.mp4) (60s · 1920×1080 · 60fps · H.264 · 9.3 MB) — deterministic `hero60-cine.html#__cineFrame` → `playwright` → `ffmpeg-static` (`libx264 preset medium crf12 yuv420p lanczos bt709 g60 bf0 6000k faststart`). Fallback B-roll: `docs/slewing-bearing.html#cine` (Three.js r160 cinematic, same `__cineFrame` pipeline).
 
 ## Turn your shop into a real business. You make parts. We handle the office.
 
@@ -12,7 +12,7 @@ If you have machines — or want to buy your first one — we set up the whole b
 
 This is Optimized Manufacturing's Shop OS running on [Solari](https://getsolari.com) infra. No buzzwords. Watch the 60-second demo above, pick your path below, and run it yourself.
 
-Submission to [Harry Chow's $300K Solari intern challenge](https://x.com/harrychow_/status/2094437473912844480). Chow (the Shop OS agent, named 2024–25) 🤝 Harry Chow — coincidence turned into a hook. See [PROOF.md](./PROOF.md).
+Submission to [Harry Chow's $300K Solari intern challenge](https://x.com/harrychow_/status/2094437473912844480). Chow (the Shop OS agent) 🤝 Harry Chow — a name coincidence, and nothing more. See [PROOF.md](./PROOF.md) for what is actually proven.
 
 ## Office-in-a-Box — 4 steps
 
@@ -63,7 +63,13 @@ Other entry points:
 npm run fleet    # 4 shop personas × isolated browsers → friction log
 npm run factory  # sandbox CAD + deterministic hash (c3259a26…[^hash])
 npm run honesty  # desktop honesty probe → yellow REFUSED card
+npm run verify:full  # generate the per-run artifacts, then check everything (no key)
 ```
+
+`npm run verify` on its own checks what is already on disk. Two of the things it checks —
+`part-card.html` and `honesty-proof.{png,html}` — are **generated per run and gitignored**, so on a
+fresh clone they do not exist yet and it will report them missing. `npm run verify:full` generates
+them first, then runs the same checks. That is the one to run on a clean clone.
 
 Full 60s outline and gotchas: [docs/demo.md](./docs/demo.md).
 

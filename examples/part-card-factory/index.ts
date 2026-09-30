@@ -746,8 +746,13 @@ async function main(): Promise<void> {
 
   for (const c of checks) console.log(`  ${c}`);
   const determinismPass = hashA! === hashB!;
-  const stepMode = checks.some((c) => c.includes("build123d")) ? "real build123d STEP" : "hash";
-  console.log(`\nSTEP ${stepMode} hash A: ${hashA}   B: ${hashB}   → ${determinismPass ? "EQUAL ✓" : "MISMATCH ✗"}`);
+  // Sound predicate. The mock fallback check string is
+  //   "mock hashlib fallback (build123d not installed)"
+  // which CONTAINS the substring "build123d" — so `includes("build123d")` mislabels a hashlib
+  // placeholder as a real STEP build, on the exact line a reviewer reads. Match the real-path
+  // check string ("real build123d STEP ✓") exactly instead.
+  const realStep = checks.some((c) => c.includes("real build123d STEP"));
+  console.log(`\n${realStep ? "STEP (real build123d)" : "hash (hashlib fallback — no STEP built)"} hash A: ${hashA}   B: ${hashB}   → ${determinismPass ? "EQUAL ✓" : "MISMATCH ✗"}`);
   // Write part-card.html and browser-verify it.
   // The card displays the canonical published STEP hash (GOLDEN) for the 6205 — it is a
   // public showcase artifact pinned to the reference hash so it stays stable across
@@ -775,7 +780,7 @@ async function main(): Promise<void> {
   console.log("\n" + "─".repeat(64));
   console.log(`FACTORY RESULT: ${pass ? "PASS ✓" : "FAIL ✗"}`);
   console.log("─".repeat(64));
-  if (pass) console.log(`Sandbox-isolated ${checks.some((c)=>c.includes("build123d")) ? "real build123d STEP" : "mock"} build, deterministic STEP hash (STEP bytes), browser-verified card.`);
+  if (pass) console.log(`${realStep ? "Sandbox-isolated real build123d STEP" : "Local mock (hashlib)"} build, deterministic ${realStep ? "STEP hash (STEP bytes)" : "hash (params JSON — not STEP bytes)"}, browser-verified card.`);
   else console.log("One or more checks failed — see above.");
 
   console.log("\nGotchas: commands.run('python3', { args: ['-c', code] }) — argv via args, not shell string;");

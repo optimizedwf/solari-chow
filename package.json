@@ -12,6 +12,7 @@
     "honesty": "npm --workspace=honesty-desktop start",
     "onboarding": "npm --workspace=onboarding-wizard start --",
     "verify": "node scripts/verify-mock.mjs && node scripts/secret-scan.mjs && node scripts/verify-video.mjs",
+    "verify:full": "npm run factory && npm run honesty && npm run verify",
     "shop-live": "npx tsx scripts/shop-live-serve.mjs",
     "shop-live-kill": "npx tsx scripts/shop-live-kill.mjs"
   },

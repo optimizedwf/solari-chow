@@ -1,7 +1,7 @@
 # Demo — Optimized Manufacturing on Solari (60s cut)
 
 **Repo:** `solari-chow` — Optimized Manufacturing's Shop OS on Solari. Works for any shop that makes parts — CNC, sheet, print, or fab; the flow is the same.
-**Hook:** Chow 🤝 Harry Chow — Chow (Shop OS agent) predates the 2026-08-31 post by years ([PROOF.md](../PROOF.md)).
+**Hook:** Chow 🤝 Harry Chow — a name coincidence turned into a hook, not a precedence claim ([PROOF.md](../PROOF.md)).
 
 ## 60s video outline
 

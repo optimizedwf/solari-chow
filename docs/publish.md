@@ -43,9 +43,16 @@ npm run demo       # fleet PASS
 npm run factory    # factory PASS — hash c3259a26…
 npm run honesty    # honesty PASS — writes honesty-proof.png
 npm run onboarding -- --bring --shop "Acme Precision"  # onboarding PASS — <3s mock, writes onboarding.html + shop-config.json
+npm run verify:full   # generates the per-run artifacts, then runs all checks → 32 PASS, 0 FAIL
 ```
 
 Expected: fleet/factory/honesty/onboarding all print PASS without SOLARI_API_KEY. Generated png/html (part-card/honesty-proof) are gitignored and recreated; onboarding.html + shop-config.json are tracked stand-ins.
+
+**Why `verify:full` and not `verify`:** `verify-mock.mjs` asserts the *existence* of
+`examples/part-card-factory/part-card.html` and `examples/honesty-desktop/honesty-proof.{png,html}`.
+Those are generated per run and gitignored by design (see §publish verification below), so on a fresh
+clone they are absent and bare `npm run verify` reports 2 missing artifacts. `verify:full` runs
+`factory` + `honesty` first to create them. `verify` stays a pure on-disk checker.
 
 ## 3) (Optional) Verify live with key
 
@@ -83,31 +90,51 @@ Quote or reply to https://x.com/harrychow_/status/2094437473912844480 with the s
 
 ## 6) Next rich-grain re-render (documented, not run now)
 
-Current `docs/demo-60s.mp4` is 7.38 MB (~1.03 Mbps, 0.008 bpp) — starved for
-1920×1080 60fps grain. Target 45–60 MB (6.3–8.4 Mbps, 0.05–0.07 bpp) is 6–8× larger.
-`scripts/render-hero60-stream.mjs` is already env-driven so the *next* render can
-hit the target without touching frames — `hero60-cine.html` is deterministic via
-`xorshift` seeded by `i*9973+k*7919` (no `Math.random` at runtime).
+Current `docs/demo-60s.mp4` is 9,798,834 B (9.34 MiB, ~1.31 Mbps) — lean for
+1920×1080 60fps grain, but it is **inside the repo weight cap** and must stay there:
+`scripts/verify-video.mjs` hard-fails the ship path above **15 MiB** and below 5 MiB.
+
+**The cap, not a bitrate target, is what governs this file.** An earlier draft of this
+section said "Target 45–60 MB (6.3–8.4 Mbps, 0.05–0.07 bpp)". That was wrong and
+self-defeating: 45–60 MB at this exact path is 3–4× **over** the cap, so following the
+documented procedure would make the repo fail its own verifier. The correct shape is
+two files, which `.gitignore:15` already anticipates:
+
+| path | role | size rule |
+|---|---|---|
+| `docs/demo-60s.hq.mp4` | full-quality master, **gitignored** | uncapped |
+| `docs/demo-60s.mp4` | the **tracked** ship artifact | `>5 MiB` and `<=15 MiB` |
+
+Render the master, then derive the ship file from it (the remedy
+`verify-video.mjs:45` names on its own failure line):
 
 ```bash
-# Recommended: lower CRF (visually near-lossless) — keeps slow preset + bt709
-CRF=12 PRESET=medium node scripts/render-hero60-stream.mjs
-# or pin a floor if CRF alone stays lean on synthetic flat areas:
-CRF=14 MAXRATE=8000k BUFSIZE=16000k node scripts/render-hero60-stream.mjs
-# for hard CBR-ish floor:
-BV=6000k node scripts/render-hero60-stream.mjs
-# equivalent raw ffmpeg (what the script spawns):
-# ffmpeg -r 60 -i - -c:v libx264 -preset medium -crf 12 -pix_fmt yuv420p \
-#   -vf scale=1920:1080:flags=lanczos,format=yuv420p -r 60 -movflags +faststart \
-#   -colorspace bt709 -color_primaries bt709 -color_trc bt709 docs/demo-60s.mp4
+# 1. master (uncapped) — cine renderer now defaults OUT to the hq path
+CRF=12 PRESET=medium node scripts/render-hero60-cine.mjs
+#    → docs/demo-60s.hq.mp4
+
+# 2. ship file (capped) — two-pass from the master
+node_modules/ffmpeg-static/ffmpeg -y -i docs/demo-60s.hq.mp4 \
+  -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p \
+  -vf scale=1920:1080:flags=lanczos,format=yuv420p \
+  -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
+  -movflags +faststart docs/demo-60s.mp4
 ```
 
-Verify after render (same as § publish verification, plus bitrate):
+⚠️ `scripts/render-hero60-stream.mjs:10` **still defaults `OUT` to the ship path** and
+has no size guard — `render-hero60-cine.mjs` was fixed, its sibling was not. Do not run
+the stream renderer bare against `docs/demo-60s.mp4` until that is repaired; pass
+`OUT=docs/demo-60s.hq.mp4` explicitly.
+
+Verify after render (same as the publish verification, plus size):
 
 ```bash
-ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,avg_frame_rate,pix_fmt,duration -of default=nw=1 docs/demo-60s.mp4
-ls -lh docs/demo-60s.mp4  # expect 45–60 MB
+node_modules/ffmpeg-static/ffmpeg -hide_banner -i docs/demo-60s.mp4
+ls -l docs/demo-60s.mp4  # expect >5242880 and <=15728640 bytes
+npm run verify            # the cap is enforced here
 ```
+
+(`ffprobe` is **not** installed — only `ffmpeg-static` ships — so use `ffmpeg -i`.)
 
 Do NOT re-render in CI now (expensive: 3600 frames via Playwright); this note is the
 source of truth until the next manual run. `file://$(pwd)/docs/hero.html` note in §

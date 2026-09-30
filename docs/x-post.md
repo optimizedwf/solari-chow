@@ -26,15 +26,14 @@ cd solari-chow && npm install && npm run demo
 ## Thread reply 2 — destiny note (only if asked)
 
 ```
-Chow (Shop OS agent) was named 2024-25. Harry's post is 2026-08-31 — not a rename.
-Proof in PROOF.md: git log --all -S "chow" --before="2026-08-31"
+Chow (Shop OS agent) 🤝 Harry Chow — a name coincidence, nothing more. No 2024 history exists (solari-chow created 2026-09-01; our CNC repo's oldest commit is 2026-06-14, and it's private so you can't check that). What is actually proven: two independent Solari sandboxes build bearing 6205 and produce byte-identical STEP — sha256[:16]=c3259a261f868443. See PROOF.md.
 ```
 
 ## Video
 
 Attach `docs/demo-60s.mp4` native to the main post (9.3MB, under 512MB limit) — do not link-only. Record per `docs/demo.md` (fleet → factory → desktop → teardown) if re-cutting, but the tracked 1920×1080 60fps H.264 yuv420p is the source of truth. Landing video is `docs/hero.html` hero. Even mock mode is green.
 
-Pre-publish checks: `ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,avg_frame_rate,pix_fmt,duration -of default=nw=1 docs/demo-60s.mp4` and `open file://$(pwd)/docs/hero.html` (also `docs/demo-60s.mp4` plays).
+Pre-publish checks: `node_modules/ffmpeg-static/ffmpeg -hide_banner -i docs/demo-60s.mp4` and `open file://$(pwd)/docs/hero.html` (also `docs/demo-60s.mp4` plays).
 
 ## Checklist before tagging
 

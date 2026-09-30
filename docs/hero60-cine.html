@@ -29,7 +29,7 @@ const C={
 const SHOTS=[
   {id:0, s:0,   e:72,   name:'OM'},
   {id:1, s:72,  e:300,  name:'TITLE'},
-  {id:2, s:300, e:660,  name:'PROOF'},
+  {id:2, s:300, e:660,  name:'VERIFY'},
   {id:3, s:660, e:1080, name:'FLEET'},
   {id:4, s:1080,e:1680, name:'FACTORY'},
   {id:5, s:1680,e:2160, name:'HONESTY'},
@@ -192,7 +192,7 @@ function caption(text){
 function frameToCaption(f){
   if(f<72) return 'OPTIMIZED MANUFACTURING.';
   if(f<300) return 'Chow \uD83E\uDD1D Harry Chow \u2014 Shop OS now live on Solari';
-  if(f<660) return 'Not a rename \u2014 see PROOF.md  \u00B7  git log --before=2026-08-31 -S chow';
+  if(f<660) return 'Verified, not asserted  \u2014  real history, real hashes  \u2014  PROOF.md';
   if(f<1080) return 'Fleet  \u00B7  4 personas \u00D7 isolated Solari browsers  \u00B7  one friction log';
   if(f<1680) return 'Factory  \u00B7  two sandboxes, same part, same bytes  \u00B7  hash c3259a261f868443';
   if(f<2160) return 'Honesty  \u00B7  bad geometry gets REFUSED \u2014 and it tells you why  \u00B7  in yellow';
@@ -334,7 +334,7 @@ function render(i){
     drawCursor(curX,curY,i,clicking,bAlpha);
     ctx.restore();
   }
-  // shot2 PROOF — git log scrolling + PROOF.md as terminal
+  // shot2 VERIFY — real git log scrolling + PROOF.md as terminal
   else if(s.id===2){
     ctx.fillStyle='#08090b'; ctx.fillRect(0,0,W,H);
     bgGradient(); pseudoBearing(0.10,t);
@@ -349,7 +349,7 @@ function render(i){
     ctx.fillStyle='#ff5f57'; ctx.beginPath(); ctx.arc(tx+18,ty+19,6,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#ffbd2e'; ctx.beginPath(); ctx.arc(tx+38,ty+19,6,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#28c940'; ctx.beginPath(); ctx.arc(tx+58,ty+19,6,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#d6dbe1'; ctx.font='11px "SF Mono",monospace'; ctx.fillText('Terminal \u2014 PROOF.md — git log', tx+86, ty+24);
+    ctx.fillStyle='#d6dbe1'; ctx.font='11px "SF Mono",monospace'; ctx.fillText('Terminal \u2014 git log — solari-chow', tx+86, ty+24);
     ctx.fillStyle='#6f7a86'; ctx.font='10px "SF Mono",monospace'; ctx.textAlign='right'; ctx.fillText('zsh', tx+tw-18, ty+24); ctx.textAlign='left';
     // split into two panes
     ctx.save(); ctx.beginPath(); ctx.roundRect(tx+1,ty+38,tw-2,th-39, [0,0,14,14]); ctx.clip();
@@ -357,17 +357,14 @@ function render(i){
     // left pane — git log
     const leftW= tw*0.52 -1;
     ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fillRect(tx,ty+38,leftW,th-39);
-    ctx.fillStyle='#8b929c'; ctx.font='10px "SF Mono",monospace'; ctx.fillText('$ git log --before=2026-08-31 -S chow --oneline', tx+14, ty+62);
+    ctx.fillStyle='#8b929c'; ctx.font='10px "SF Mono",monospace'; ctx.fillText("$ git log --reverse --date=short --pretty='%h %ad  %s'", tx+14, ty+62);
     // log lines scrolling
     const logs=[
-      'a7f3c9e 2024-03-14  chow: initial scaffold — Optimized Manufacturing',
-      'b2e81a1 2024-04-02  chow: shop OS routing + quote inbox',
-      'c9d0042 2024-05-19  chow: fleet personas + stealth browser',
-      'd4f1b88 2024-06-22  chow: factory build123d STEP export',
-      'e1d0a44 2024-08-11  chow: honesty desktop 1280x720',
-      'f3a92c0 2024-09-30  chow: wordmark OM + signal palette',
-      '8c2e71b 2024-11-18  chow: PROOF.md + video-spec deterministic',
-      '9b44d2e 2025-02-09  chow: slewing bearing triple-row cutaway',
+      'd3bf1d8 2026-09-03  solari-chow: Optimized Manufacturing on Solari \u2014 one key for browsers, sandboxes, desktops',
+      'fe3497b 2026-09-30  Scrub private-network and sandbox identifiers from tracked files',
+      '3f88754 2026-09-30  Redact live Solari preview handles; add leak rules to secret-scan',
+      'ae01ac0 2026-09-30  Correct demo video size and qualify the STEP hash footnote',
+      'c088c13 2026-09-30  docs: verify the pre-tag checklist and correct the leak-test command',
     ];
     const totalLines=logs.length;
     const lineH=19;
@@ -401,18 +398,18 @@ function render(i){
     ctx.fillStyle='#8b929c'; ctx.font='10px "SF Mono",monospace'; ctx.fillText('PROOF.md \u2014 rendered', rx+16, ty+62);
     // markdown lines with typing
     const mdLines=[
-      '# PROOF — chow predates @harrychow_',
+      '# PROOF \u2014 determinism, not destiny',
       '',
-      '> Not a rename. Search the history.',
+      '> Same part, two sandboxes, same bytes.',
       '',
       '```bash',
-      'git log --before=2026-08-31 -S chow',
-      '# \u2192 2024 commits found',
+      'npm run factory',
+      'check: 7 balls == 7 grooves \u2713',
       '```',
       '',
-      '- 2024-03-14  init: chow scaffold',
-      '- 2024-05-19  fleet: isolated browsers',
-      '- 2024-08-11  honesty: yellow REFUSED',
+      '- 6205 \u00B7 bore 25 / OD 52 / width 15',
+      '- 2 microVMs \u00B7 independent builds',
+      '- name overlap = coincidence, not a claim',
       '',
       'Determinism \u2014 c3259a261f868443',
     ];
@@ -423,7 +420,7 @@ function render(i){
       const yy=ty+88+ idx*18;
       if(l.startsWith('# ')){ ctx.fillStyle='#efece5'; ctx.font='700 12px "SF Mono",monospace'; ctx.fillText(l, rx+16, yy); }
       else if(l.startsWith('>')){ ctx.fillStyle='#7de3ef'; ctx.font='11px "SF Mono",monospace'; ctx.fillText(l, rx+16, yy); }
-      else if(l.startsWith('```')||l.startsWith('git')){ ctx.fillStyle='#22c55e'; ctx.font='11px "SF Mono",monospace'; ctx.fillText(l, rx+16, yy); }
+      else if(l.startsWith('```')||l.startsWith('npm')||l.startsWith('check:')){ ctx.fillStyle='#22c55e'; ctx.font='11px "SF Mono",monospace'; ctx.fillText(l, rx+16, yy); }
       else if(l.startsWith('-')){ ctx.fillStyle='#8b929c'; ctx.font='11px "SF Mono",monospace'; ctx.fillText(l, rx+16, yy); }
       else if(l.includes('c3259a26')){ ctx.fillStyle='#20b8cd'; ctx.font='11px "SF Mono",monospace'; ctx.fillText(l, rx+16, yy); }
       else { ctx.fillStyle='#6f7a86'; ctx.font='11px "SF Mono",monospace'; ctx.fillText(l, rx+16, yy); }
@@ -433,7 +430,7 @@ function render(i){
     }
     // bottom status bar
     ctx.fillStyle='rgba(32,184,205,0.10)'; ctx.fillRect(tx, ty+th-24, tw, 24);
-    ctx.fillStyle='#7de3ef'; ctx.font='10px "SF Mono",monospace'; ctx.fillText('2024 commits \u00B7 7-ball PCD \u00B7 c3259a26', tx+14, ty+th-9);
+    ctx.fillStyle='#7de3ef'; ctx.font='10px "SF Mono",monospace'; ctx.fillText('5 commits \u00B7 7-ball PCD \u00B7 c3259a26', tx+14, ty+th-9);
     ctx.fillStyle='#6f7a86'; ctx.textAlign='right'; ctx.fillText('mode: PROOF  \u00B7  q to quit', tx+tw-14, ty+th-9); ctx.textAlign='left';
     ctx.restore();
     // cursor hovering terminal
