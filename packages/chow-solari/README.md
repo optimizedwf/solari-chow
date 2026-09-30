@@ -10,7 +10,7 @@ console.log(CHOW_BANNER); // "Chow 🤝 Harry Chow — Shop OS on solari"
 const browser = await launchBrowser({ stealth: true, recording: true });
 try {
   const page = await (browser as any).newPage();
-  await page.goto("http://100.111.182.5:5173");
+  await page.goto("http://shop-os.example.invalid:5173");
   console.log(await page.title());
 } finally {
   // Cookbook gotcha: await solari.close() can hang — always call in finally with timeout.

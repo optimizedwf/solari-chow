@@ -2,7 +2,7 @@
  * Chow Fleet — 4 personas, each on an isolated Solari browser.
  *
  * Live target (Shop OS cockpit when reachable):
- *   http://100.111.182.5:5173
+ *   http://shop-os.example.invalid:5173
  * Demo stand-ins (no VPN required):
  *   https://example.com  and  https://getsolari.com
  *
@@ -34,7 +34,7 @@ const PERSONAS: Persona[] = [
   { id: "qa-receiving",    label: "QA / Receiving",         cockpitPath: "/qa",        task: "Confirm incoming DFM card is yellow not red" },
 ];
 
-const SHOP_OS_BASE = process.env.SHOP_OS_BASE || "http://100.111.182.5:5173";
+const SHOP_OS_BASE = process.env.SHOP_OS_BASE || "http://shop-os.example.invalid:5173";
 const SHOP_SLUG = process.env.SHOP_SLUG || "acme-precision";
 const SLUG_URL_BASE = `https://${SHOP_SLUG}.getsolari.app`;
 // For the recorded demo without Shop OS reachable, stand-ins:
@@ -51,7 +51,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 function mockTitleFor(url: string, personaLabel?: string): string {
-  if (url.includes(SHOP_OS_BASE) || url.includes("100.111.182.5")) {
+  if (url.includes(SHOP_OS_BASE) || url.includes("shop-os.example.invalid")) {
     return personaLabel ? `Shop OS — ${personaLabel}` : "Shop OS — cockpit";
   }
   if (url.includes("getsolari")) return "Solari — Browser Infrastructure";
