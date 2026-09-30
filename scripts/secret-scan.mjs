@@ -136,5 +136,60 @@ function sh(cmd, opts = {}) {
   log(pass, '.env gitignored', detail.slice(0, 300));
 }
 
+// 4) solari-preview-host — leaked Solari preview host ids and sandbox handles (working tree)
+{
+  // (a) preview host: 20-hex sandbox id + "-" + port + ".preview.getsolari.com"
+  // (b) sandbox handle: "<base64-ish blob>.<43-char url-safe hmac>"
+  const PREVIEW_HOST = '[0-9a-f]{20}-[0-9]+[.]preview[.]getsolari[.]com';
+  const SANDBOX_HANDLE = '[A-Za-z0-9+/=_-]{20,}[.][A-Za-z0-9_-]{43}';
+  const re = `${PREVIEW_HOST}|${SANDBOX_HANDLE}`;
+  let out = '';
+  try {
+    out = execSync(`git grep -n -E '${re}' -- . 2>&1 || true`, { encoding: 'utf8', cwd: ROOT, timeout: 15000 }).trim();
+    if (out === '' || out.startsWith('fatal: not a git')) throw new Error('fallback');
+  } catch (_) {
+    out = sh(`grep -R -n -E '${re}' --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.venv --exclude="*.log" . 2>&1 || true`);
+  }
+  const meaningful = out.split('\n').map(s => s.trim()).filter(s => s && !s.includes('Binary file') && !s.startsWith('warning:'));
+  if (meaningful.length === 0) {
+    log(true, 'solari-preview-host', 'no real preview hosts or sandbox handles in working tree');
+  } else {
+    log(false, 'solari-preview-host', `found ${meaningful.length} hit(s) — use xxx-3000.preview.getsolari.com placeholder`);
+    for (const line of meaningful.slice(0, 20)) console.log('  ' + line);
+  }
+}
+
+// 5) private-network-address — RFC1918 / CGNAT / Tailscale (dotted-decimal only)
+{
+  const IP = [
+    '10[.][0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}',                               // RFC1918 10/8
+    '172[.](1[6-9]|2[0-9]|3[01])[.][0-9]{1,3}[.][0-9]{1,3}',                  // RFC1918 172.16/12
+    '192[.]168[.][0-9]{1,3}[.][0-9]{1,3}',                                    // RFC1918 192.168/16
+    '100[.](6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])[.][0-9]{1,3}[.][0-9]{1,3}', // CGNAT 100.64/10
+    '100[.][0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}',                             // Tailscale 100.x
+  ].join('|');
+  // Documented placeholders used in this repo (`shop-os.example.invalid`, `xxx-3000`)
+  // are non-numeric and can never match the dotted-decimal patterns; strip them
+  // defensively before re-testing a line so they are explicitly allowed.
+  const ALLOWED = /shop-os\.example\.invalid|xxx-3000/g;
+  const hitRe = new RegExp(`(^|[^0-9.])(${IP})`);
+  let out = '';
+  try {
+    out = execSync(`git grep -n -E '${IP}' -- . 2>&1 || true`, { encoding: 'utf8', cwd: ROOT, timeout: 15000 }).trim();
+    if (out === '' || out.startsWith('fatal: not a git')) throw new Error('fallback');
+  } catch (_) {
+    out = sh(`grep -R -n -E '${IP}' --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.venv --exclude="*.log" . 2>&1 || true`);
+  }
+  const hits = out.split('\n').map(s => s.trim())
+    .filter(s => s && !s.includes('Binary file') && !s.startsWith('warning:'))
+    .filter(line => hitRe.test(line.replace(ALLOWED, '')));
+  if (hits.length === 0) {
+    log(true, 'private-network-address', 'no RFC1918/CGNAT/Tailscale addresses in working tree');
+  } else {
+    log(false, 'private-network-address', `found ${hits.length} hit(s) — use documentation placeholders`);
+    for (const line of hits.slice(0, 20)) console.log('  ' + line);
+  }
+}
+
 console.log(`\nsecret-scan: ${passes} PASS, ${fails} FAIL`);
 process.exit(fails ? 1 : 0);

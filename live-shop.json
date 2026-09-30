@@ -1,11 +1,11 @@
 {
   "shop": "acme-precision",
   "sandboxId": "REDACTED",
-  "previewUrl": "https://758a65cb57cae73c9a82-3000.preview.getsolari.com?pt_token=...",
+  "previewUrl": "https://xxx-3000.preview.getsolari.com?pt_token=...",
   "previewVerified": true,
   "servedFile": "shop.html",
   "servedBytes": 33391,
   "timeoutMs": 28800000,
   "startedAt": "2026-09-03T06:50:01.484Z",
-  "note": "Sandbox left RUNNING — kill with: npx tsx scripts/shop-live-kill.mjs"
+  "note": "Sandbox handle redacted. Receipt kept as evidence of a verified live preview (started 2026-09-03T06:50:01Z, 8h timeout, long expired)."
 }

@@ -14,7 +14,7 @@
     "isMock": false
   },
   "preview": {
-    "url": "https://6ca24412cb7ff7c09012-3000.preview.getsolari.com?pt_token=...",
+    "url": "https://xxx-3000.preview.getsolari.com?pt_token=...",
     "verified": true,
     "port": 3000,
     "pattern": "https://xxx-3000.preview.getsolari.com?pt_token=..."

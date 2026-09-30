@@ -28,7 +28,7 @@ export SOLARI_API_KEY=slr_live_...
 npm start
 ```
 
-Live target (on the Tailscale): `http://shop-os.example.invalid:5173{persona.cockpitPath}`. Without the tailnet the demo drives `https://example.com` and `https://getsolari.com` as stand-ins — swap the base URL in `index.ts` (see `SHOP_OS_BASE` comment).
+Live target (private tailnet; host shown as a placeholder): `http://shop-os.example.invalid:5173{persona.cockpitPath}`. Without the tailnet the demo drives `https://example.com` and `https://getsolari.com` as stand-ins — swap the base URL in `index.ts` (see `SHOP_OS_BASE` comment).
 
 ## Gotchas demonstrated in code
 
