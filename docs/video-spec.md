@@ -52,7 +52,7 @@ export const HERO_60 = {
 
 **Assets to pre-render for Remotion:**
 
-- `slewing-cine.mp4` — deterministic capture of `docs/slewing-bearing.html#cine` (66 s, trim to 10 s for shots 1+6). Produce via `window.__cineFrame(i) → JPEG 0.97` loop (see `slewing-bearing.html` CINE block ~837), stitched with `ffmpeg -r 60 -i frame-%04d.jpg -c:v libx264 -preset medium -crf 12 -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709 -movflags +faststart slewing-cine.mp4` (was CRF 16; hero60 stream now also CRF 12 medium ~55 MB @ 6000 k).
+- `slewing-cine.mp4` — deterministic capture of `docs/slewing-bearing.html#cine` (66 s, trim to 10 s for shots 1+6). Produce via `window.__cineFrame(i) → JPEG 0.97` loop (see `slewing-bearing.html` CINE block ~837), stitched with `ffmpeg -r 60 -i frame-%04d.jpg -c:v libx264 -preset medium -crf 12 -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709 -movflags +faststart slewing-cine.mp4` (was CRF 16; hero60 stream is now also CRF 12 medium — measured ~2079 kb/s ≈ 14.9 MiB at 60 s, since 6000 k is a VBV ceiling, not a CBR floor).
 - `hero-stills/` — Playwright screenshots of `hero.html#fleet|#factory|#honesty|#cta` at 1920×1080 for fallback sequences.
 
 **Caption track** — `docs/captions.vtt` (3 cues) + `hero-captions.srt` mirror the VO column; burn in with mono `10px` `letter-spacing:.14em` in bone at `bottom: 42px`, and wire `<track kind="captions" src="captions.vtt">` in `hero.html` (kept minimal, no extra gradients/borders).

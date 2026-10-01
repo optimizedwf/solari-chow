@@ -4,7 +4,7 @@
 
 [![Hero — live demo](https://img.shields.io/badge/demo-hero.html%20%E2%96%B6-20b8cd?style=for-the-badge)](./docs/hero.html) [![Watch 60s](https://img.shields.io/badge/watch-demo--60s.mp4-08090b?style=for-the-badge)](./docs/demo-60s.mp4) ![60fps](https://img.shields.io/badge/60fps-1920x1080%20H.264%20yuv420p-7de3ef?style=flat-square)
 
-> **Watch:** [`docs/hero.html`](./docs/hero.html) (interactive) · [`docs/demo-60s.mp4`](./docs/demo-60s.mp4) (60s · 1920×1080 · 60fps · H.264 · 9.3 MB) — deterministic `hero60-cine.html#__cineFrame` → `playwright` → `ffmpeg-static` (`libx264 preset medium crf12 yuv420p lanczos bt709 g60 bf0 6000k faststart`). Fallback B-roll: `docs/slewing-bearing.html#cine` (Three.js r160 cinematic, same `__cineFrame` pipeline).
+> **Watch:** [`docs/hero.html`](./docs/hero.html) (interactive) · [`docs/demo-60s.mp4`](./docs/demo-60s.mp4) (60s · 1920×1080 · 60fps · H.264 · 13.6 MiB) — deterministic `hero60-cine.html#__cineFrame` → `playwright` → `ffmpeg-static` (`libx264 preset medium crf12 yuv420p lanczos bt709 g60 bf0 6000k faststart`). Fallback B-roll: `docs/slewing-bearing.html#cine` (Three.js r160 cinematic, same `__cineFrame` pipeline).
 
 ## Turn your shop into a real business. You make parts. We handle the office.
 

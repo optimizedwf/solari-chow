@@ -31,7 +31,7 @@ Chow (Shop OS agent) 🤝 Harry Chow — a name coincidence, nothing more. No 20
 
 ## Video
 
-Attach `docs/demo-60s.mp4` native to the main post (13.6MB, under 512MB limit) — do not link-only. Record per `docs/demo.md` (fleet → factory → desktop → teardown) if re-cutting, but the tracked 1920×1080 60fps H.264 yuv420p is the source of truth. Landing video is `docs/hero.html` hero. Even mock mode is green.
+Attach `docs/demo-60s.mp4` native to the main post (13.6 MiB, under 512 MB limit) — do not link-only. Record per `docs/demo.md` (fleet → factory → desktop → teardown) if re-cutting, but the tracked 1920×1080 60fps H.264 yuv420p is the source of truth. Landing video is `docs/hero.html` hero. Even mock mode is green.
 
 Pre-publish checks: `node_modules/ffmpeg-static/ffmpeg -hide_banner -i docs/demo-60s.mp4` and `open file://$(pwd)/docs/hero.html` (also `docs/demo-60s.mp4` plays).
 
