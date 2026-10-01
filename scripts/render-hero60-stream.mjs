@@ -4,10 +4,14 @@
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
+import path from 'node:path';
 
 const W=1920,H=1080,FPS=60,FRAMES=3600;
 const PAGE = process.env.PAGE_URL || `http://127.0.0.1:9876/docs/hero60-cine.html#cine`;
-const OUT = process.env.OUT || `${process.cwd()}/docs/demo-60s.mp4`;
+// Default to the UNCAPPED master (mirrors render-hero60-cine.mjs:13). docs/demo-60s.mp4 is the
+// TRACKED ship artifact, capped at 15 MiB by scripts/verify-video.mjs — and the default CRF12
+// encode lands ~14.9 MiB, i.e. within ~1% of that cap. A raw encode must never target it.
+const OUT = process.env.OUT || `${process.cwd()}/docs/demo-60s.hq.mp4`;
 const FFMPEG = process.env.FFMPEG || `${process.cwd()}/node_modules/ffmpeg-static/ffmpeg`;
 
 if (!fs.existsSync(FFMPEG)) { console.error('ffmpeg not found',FFMPEG); process.exit(1); }
@@ -24,7 +28,10 @@ console.log('meta',JSON.stringify(meta));
 await page.evaluate('for(let i=0;i<4;i++) window.__cineFrame(i)');
 
 // Bitrate/bpp: 1920*1080*60*~6000kbps => bpp ~0.048-0.06 (6000kbit/s / (1920*1080*60) ≈ 0.048).
-// Raising quality to CRF12 preset medium (was CRF16 slow) + filler CBR yields ~55MB target at 60s.
+// CRF12 preset medium + filler CBR is a QUALITY setting, not a size target: BV/MAXRATE are a VBV
+// *ceiling*, so the default encode measures ~2079 kb/s ≈ 14.9 MiB at 60s (CRF governs, not 6000k).
+// That is inside the 15 MiB ship cap but only barely — derive the ship file from the hq master
+// with the two-pass ABR recipe in docs/publish.md §6 rather than encoding straight to it.
 // Env overrides still work: CRF=12 PRESET=medium BV=6000k MAXRATE=6000k NALHRD=cbr
 const CRF_ENV = process.env.CRF;
 const CRF = CRF_ENV === undefined ? '12' : CRF_ENV;
@@ -76,6 +83,18 @@ await new Promise((res,rej)=>{
 await browser.close();
 const st=fs.statSync(OUT);
 console.log(`DONE ${OUT} ${(st.size/1024/1024).toFixed(2)} MB ${FRAMES} frames`);
+// Ship-path guard — docs/demo-60s.mp4 is the TRACKED artifact and must stay inside the
+// repo weight cap (>5 MiB, <=15 MiB — mirrors scripts/verify-video.mjs:43-45). The hq
+// master written by default has no such cap. Mirrors render-hero60-cine.mjs:133-144.
+const SHIP = path.join(process.cwd(), 'docs/demo-60s.mp4');
+if (path.resolve(OUT) === path.resolve(SHIP)) {
+  const MIN = 5 * 1024 * 1024, MAX = 15 * 1024 * 1024;
+  if (st.size <= MIN || st.size > MAX) {
+    console.error(`[FAIL] ship artifact ${SHIP} is ${st.size} bytes (${(st.size/1024/1024).toFixed(2)} MB) — must be >${MIN} and <=${MAX} bytes`);
+    process.exit(1);
+  }
+  console.log(`[PASS] ship artifact ${st.size} bytes (${(st.size/1024/1024).toFixed(2)} MB) within (${MIN}, ${MAX}]`);
+}
 // poster extraction — faststart MP4 is seekable immediately after encode (JPEG 0.97 input already handled)
 try{
   const poster= `${process.cwd()}/docs/poster.jpg`;

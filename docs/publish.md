@@ -110,7 +110,7 @@ Render the master, then derive the ship file from it (the remedy
 size cap — not a quality target — is what governs the tracked file:
 
 ```bash
-# 1. master (uncapped) — cine renderer now defaults OUT to the hq path
+# 1. master (uncapped) — both renderers now default OUT to the hq path
 CRF=12 PRESET=medium node scripts/render-hero60-cine.mjs
 #    → docs/demo-60s.hq.mp4
 
@@ -126,10 +126,14 @@ $FF -y -i docs/demo-60s.hq.mp4 -c:v libx264 -preset medium -b:v 1800k \
 #    measured 2026-09-30: pass-2 1901 kb/s → 14,304,863 B (13.64 MiB) — inside the cap
 ```
 
-⚠️ `scripts/render-hero60-stream.mjs:10` **still defaults `OUT` to the ship path** and
-has no size guard — `render-hero60-cine.mjs` was fixed, its sibling was not. Do not run
-the stream renderer bare against `docs/demo-60s.mp4` until that is repaired; pass
-`OUT=docs/demo-60s.hq.mp4` explicitly.
+✅ **Both renderers now default `OUT` to the uncapped master *and* both carry the
+ship-path guard** — `render-hero60-cine.mjs:133-144` and `render-hero60-stream.mjs:86-97`,
+the stream sibling repaired 2026-09-30. It previously defaulted `OUT` to the **tracked**
+ship path with no guard, and its default CRF12 encode measures ~14.9 MiB — within ~1% of
+the 15 MiB cap — so a bare run could clobber the shipped artifact with an out-of-cap file.
+If `OUT` is ever pointed at `docs/demo-60s.mp4`, the guard now hard-fails
+(`[FAIL] ship artifact …`, exit 1) outside `(5 MiB, 15 MiB]`. Control: 5/5 — fails 4 MiB
+and 16 MiB, passes 14,304,863 B and exactly 15 MiB, silent for the master.
 
 Verify after render (same as the publish verification, plus size):
 

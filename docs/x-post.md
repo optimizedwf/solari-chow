@@ -31,7 +31,7 @@ Chow (Shop OS agent) 🤝 Harry Chow — a name coincidence, nothing more. No 20
 
 ## Video
 
-Attach `docs/demo-60s.mp4` native to the main post (9.3MB, under 512MB limit) — do not link-only. Record per `docs/demo.md` (fleet → factory → desktop → teardown) if re-cutting, but the tracked 1920×1080 60fps H.264 yuv420p is the source of truth. Landing video is `docs/hero.html` hero. Even mock mode is green.
+Attach `docs/demo-60s.mp4` native to the main post (13.6MB, under 512MB limit) — do not link-only. Record per `docs/demo.md` (fleet → factory → desktop → teardown) if re-cutting, but the tracked 1920×1080 60fps H.264 yuv420p is the source of truth. Landing video is `docs/hero.html` hero. Even mock mode is green.
 
 Pre-publish checks: `node_modules/ffmpeg-static/ffmpeg -hide_banner -i docs/demo-60s.mp4` and `open file://$(pwd)/docs/hero.html` (also `docs/demo-60s.mp4` plays).
 
@@ -44,4 +44,4 @@ Pre-publish checks: `node_modules/ffmpeg-static/ffmpeg -hide_banner -i docs/demo
       NOTE: `git log --all -S "slr_live"` is NOT a valid test — `-S` matches a change in the string's OCCURRENCE COUNT, so it flags any prose that merely mentions the prefix (including this file's own footnote). Use the `git rev-list` form above.
 - [x] Tags are exactly `@harrychow_` and `@getsolari` — `grep -o -E '@[A-Za-z0-9_]+' docs/x-post.md | sort -u` → exactly those two
 - [x] Hash display is `c3259a26…` (8 + ellipsis) = `c3259a261f868443` full 16 — consistent across README/badges/docs
-- [x] Video attached natively: `docs/demo-60s.mp4` — measured `h264 (High)`, `yuv420p`, `1920x1080`, `60 fps`, `00:01:00.00`, 9,798,834 B (9.35 MiB) < 512 MB
+- [x] Video attached natively: `docs/demo-60s.mp4` — measured `h264 (High)`, `yuv420p`, `1920x1080`, `60 fps`, `00:01:00.00`, 14,304,863 B (13.64 MiB) < 512 MB
